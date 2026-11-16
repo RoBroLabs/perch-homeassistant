@@ -1,0 +1,17 @@
+{
+  "id": 3,
+  "type": "event",
+  "event": {
+    "topic": "states",
+    "data": {
+      "lights": [
+        {
+          "id": "light.living_room_lamp",
+          "on": true,
+          "brightness": 40,
+          "available": true
+        }
+      ]
+    }
+  }
+}

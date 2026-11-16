@@ -1,0 +1,9 @@
+{
+  "id": 24,
+  "type": "result",
+  "success": false,
+  "error": {
+    "code": "unknown_command",
+    "message": "unknown command perch/teleport"
+  }
+}

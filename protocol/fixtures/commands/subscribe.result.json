@@ -1,0 +1,13 @@
+{
+  "id": 3,
+  "type": "result",
+  "success": true,
+  "result": {
+    "topics": [
+      "doorbell",
+      "events",
+      "states",
+      "manifest"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": 20,
+  "type": "perch/light",
+  "light_id": "light.living_room_lamp",
+  "on": false
+}

@@ -1,0 +1,24 @@
+{
+  "id": 1,
+  "type": "result",
+  "success": true,
+  "result": {
+    "tv_id": "tv_3f9a1c",
+    "tv_name": "Living room",
+    "room": null,
+    "rooms": [],
+    "lights": [],
+    "cameras": [],
+    "doorbell": {
+      "camera_id": null
+    },
+    "scenes": [
+      {
+        "id": "scene.evening",
+        "name": "Evening",
+        "purpose": null
+      }
+    ],
+    "let_in_available": false
+  }
+}

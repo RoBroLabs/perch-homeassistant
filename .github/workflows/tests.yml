@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 1 * *"
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Explicit pairs: each pytest-homeassistant-custom-component release pins one
+          # homeassistant version. Bump by hand (Dependabot does not read this matrix).
+          - ha: "2026.8.3"
+            phacc: "0.13.357"
+          - ha: "2026.9.4"
+            phacc: "0.13.367"
+          - ha: "2026.10.4" # latest released pair on 2026-11-15
+            phacc: "0.13.375"
+    name: pytest (HA ${{ matrix.ha }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - run: pip install "homeassistant==${{ matrix.ha }}" "pytest-homeassistant-custom-component==${{ matrix.phacc }}" "jsonschema==4.25.1"
+      - run: pytest -q

@@ -1,0 +1,226 @@
+[
+  {
+    "file": "pairing/start.request.json",
+    "def": "PairStartRequest"
+  },
+  {
+    "file": "pairing/start.response.json",
+    "def": "PairStartResponse"
+  },
+  {
+    "file": "pairing/start.response.joined.json",
+    "def": "PairStartResponse"
+  },
+  {
+    "file": "pairing/status.pending.json",
+    "def": "PairStatusResponse"
+  },
+  {
+    "file": "pairing/status.approved.json",
+    "def": "PairStatusResponse"
+  },
+  {
+    "file": "pairing/status.rejected.json",
+    "def": "PairStatusResponse"
+  },
+  {
+    "file": "pairing/status.cancelled.json",
+    "def": "PairStatusResponse"
+  },
+  {
+    "file": "pairing/status.expired.json",
+    "def": "PairStatusResponse"
+  },
+  {
+    "file": "pairing/error.bad_request.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.not_found.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.busy.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.rate_limited.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.not_local.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.pairing_local_only.json",
+    "def": "PairError"
+  },
+  {
+    "file": "pairing/error.unsupported_protocol.json",
+    "def": "PairError"
+  },
+  {
+    "file": "frames/auth_required.json",
+    "def": "AuthRequiredFrame"
+  },
+  {
+    "file": "frames/auth.json",
+    "def": "AuthFrame"
+  },
+  {
+    "file": "frames/auth_ok.json",
+    "def": "AuthOkFrame"
+  },
+  {
+    "file": "frames/auth_invalid.json",
+    "def": "AuthInvalidFrame"
+  },
+  {
+    "file": "frames/revoked.json",
+    "def": "RevokedFrame"
+  },
+  {
+    "file": "frames/ping.json",
+    "def": "PingFrame"
+  },
+  {
+    "file": "frames/pong.json",
+    "def": "PongFrame"
+  },
+  {
+    "file": "commands/manifest.request.json",
+    "def": "ManifestCommandFrame"
+  },
+  {
+    "file": "commands/manifest.result.json",
+    "def": "ManifestResultFrame"
+  },
+  {
+    "file": "commands/manifest.result.no_room.json",
+    "def": "ManifestResultFrame"
+  },
+  {
+    "file": "commands/states.request.json",
+    "def": "StatesCommandFrame"
+  },
+  {
+    "file": "commands/states.result.json",
+    "def": "StatesResultFrame"
+  },
+  {
+    "file": "commands/subscribe.request.json",
+    "def": "SubscribeCommandFrame"
+  },
+  {
+    "file": "commands/subscribe.result.json",
+    "def": "SubscribeResultFrame"
+  },
+  {
+    "file": "commands/camera.request.json",
+    "def": "CameraCommandFrame"
+  },
+  {
+    "file": "commands/camera.result.json",
+    "def": "CameraResultFrame"
+  },
+  {
+    "file": "commands/playback.request.json",
+    "def": "PlaybackCommandFrame"
+  },
+  {
+    "file": "commands/playback.result.json",
+    "def": "PlaybackResultFrame"
+  },
+  {
+    "file": "commands/light.request.json",
+    "def": "LightCommandFrame"
+  },
+  {
+    "file": "commands/light.result.json",
+    "def": "LightResultFrame"
+  },
+  {
+    "file": "commands/scene.request.json",
+    "def": "SceneCommandFrame"
+  },
+  {
+    "file": "commands/scene.result.json",
+    "def": "SceneResultFrame"
+  },
+  {
+    "file": "commands/events.request.json",
+    "def": "EventsCommandFrame"
+  },
+  {
+    "file": "commands/events.result.json",
+    "def": "EventsResultFrame"
+  },
+  {
+    "file": "commands/skip_tonight.request.json",
+    "def": "SkipTonightCommandFrame"
+  },
+  {
+    "file": "commands/skip_tonight.result.json",
+    "def": "SkipTonightResultFrame"
+  },
+  {
+    "file": "commands/unpair.request.json",
+    "def": "UnpairCommandFrame"
+  },
+  {
+    "file": "commands/unpair.result.json",
+    "def": "UnpairResultFrame"
+  },
+  {
+    "file": "commands/let_in.request.json",
+    "def": "LetInCommandFrame"
+  },
+  {
+    "file": "commands/let_in.result.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/light.request.on_only.json",
+    "def": "LightCommandFrame"
+  },
+  {
+    "file": "commands/error.not_allowed.json",
+    "def": "ErrorResultFrame"
+  },
+  {
+    "file": "commands/error.not_found.json",
+    "def": "ErrorResultFrame"
+  },
+  {
+    "file": "commands/error.refused_for_role.json",
+    "def": "ErrorResultFrame"
+  },
+  {
+    "file": "commands/error.unknown_command.json",
+    "def": "ErrorResultFrame"
+  },
+  {
+    "file": "commands/error.not_supported_yet.json",
+    "def": "ErrorResultFrame"
+  },
+  {
+    "file": "commands/events.request.kid.json",
+    "def": "EventsCommandFrame"
+  },
+  {
+    "file": "events/doorbell.json",
+    "def": "DoorbellEventFrame"
+  },
+  {
+    "file": "events/states.json",
+    "def": "StatesEventFrame"
+  },
+  {
+    "file": "events/manifest.json",
+    "def": "ManifestEventFrame"
+  },
+  {
+    "file": "events/events.json",
+    "def": "EventsEventFrame"
+  }
+]

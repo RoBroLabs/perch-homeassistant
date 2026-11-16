@@ -1,0 +1,9 @@
+{
+  "id": 23,
+  "type": "result",
+  "success": false,
+  "error": {
+    "code": "refused_for_role",
+    "message": "events are not available to a kid profile"
+  }
+}

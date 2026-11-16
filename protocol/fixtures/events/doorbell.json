@@ -1,0 +1,11 @@
+{
+  "id": 3,
+  "type": "event",
+  "event": {
+    "topic": "doorbell",
+    "data": {
+      "camera_id": "camera.front_door",
+      "rang_at": "2026-11-15T20:30:00Z"
+    }
+  }
+}

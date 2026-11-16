@@ -1,0 +1,9 @@
+{
+  "id": 21,
+  "type": "result",
+  "success": false,
+  "error": {
+    "code": "not_allowed",
+    "message": "scene not allowed for this TV"
+  }
+}

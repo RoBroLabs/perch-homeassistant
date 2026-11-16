@@ -1,0 +1,9 @@
+{
+  "id": 11,
+  "type": "result",
+  "success": true,
+  "result": {
+    "opened": false,
+    "refusal": "no_ring"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Perch for Home Assistant",
+        "description": "Perch lets your Apple TV show your cameras, doorbell and lights without holding a Home Assistant token. After this, pair each TV from this integration's page with \"Pair a TV\"."
+      }
+    },
+    "abort": {
+      "already_configured": "Perch is already set up. Pair another TV from the integration's page."
+    }
+  },
+  "config_subentries": {
+    "tv": {
+      "initiate_flow": {
+        "user": "Pair a TV"
+      },
+      "entry_type": "TV",
+      "step": {
+        "user": {
+          "title": "Pair a TV",
+          "description": "Enter the 6-digit code shown on {tv_name}. Pairing works only on your home network.",
+          "data": {
+            "code": "Code"
+          }
+        },
+        "confirm": {
+          "title": "Check the words",
+          "description": "{tv_name} should now show these four words:\n\n**{words}**\n\nPick \"The words match\" only if the TV shows exactly the same words.",
+          "menu_options": {
+            "match": "The words match",
+            "mismatch": "They do not match"
+          }
+        },
+        "reconfigure": {
+          "title": "Rooms for {tv_name}",
+          "description": "Choose the room this TV is in, and any other rooms it may control. Its own room is always included.",
+          "data": {
+            "room_id": "This TV's room",
+            "rooms": "Other rooms it may control"
+          }
+        }
+      },
+      "error": {
+        "invalid_code": "That code is not right. Check the TV and try again."
+      },
+      "abort": {
+        "not_loaded": "Perch is not running. Reload the integration and try again.",
+        "no_pending": "No TV is waiting to pair. Open Perch on the TV, choose to pair with Home Assistant, then try again.",
+        "too_many_attempts": "Too many wrong codes, so this pairing was stopped. Start again on the TV.",
+        "aborted": "Two TVs answered the same code, so this pairing was stopped. Start again on the TV you want to pair.",
+        "mismatch": "Pairing cancelled because the words did not match. Start again on the TV.",
+        "reconfigure_successful": "Rooms saved."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "What Perch can show",
+        "description": "Pick what your TVs may use. Perch can only use what you choose here. Next you can say which camera goes with the doorbell and which scenes are Movie night and Paused. Rooms and lights are set per TV: open a TV and choose Reconfigure.",
+        "data": {
+          "cameras": "Cameras",
+          "doorbell": "Doorbell trigger",
+          "scenes": "Scenes",
+          "restore_timeout": "Put the lights back after (minutes)",
+          "advanced": "Advanced"
+        },
+        "data_description": {
+          "doorbell": "A binary sensor or event that fires when someone rings.",
+          "scenes": "Choose the scenes your TVs may run.",
+          "restore_timeout": "From 5 to 60 minutes."
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "description": "Most homes never need these.",
+            "data": {
+              "pairing_attempts": "Pairing attempts",
+              "allow_cloud": "Allow Perch through Home Assistant Cloud"
+            },
+            "data_description": {
+              "pairing_attempts": "Wrong codes allowed before pairing stops. From 3 to 10.",
+              "allow_cloud": "Lets a TV reach Perch through Home Assistant Cloud when away from home. Pairing a TV always needs your home network, even with this switched on."
+            }
+          }
+        }
+      },
+      "details": {
+        "title": "Doorbell and scenes",
+        "description": "Only what you picked on the last page is offered here. All of these are optional.",
+        "data": {
+          "doorbell_camera": "Doorbell camera",
+          "movie_night_scene": "Movie night scene",
+          "paused_scene": "Paused scene"
+        },
+        "data_description": {
+          "doorbell_camera": "The camera Perch shows when the doorbell rings.",
+          "movie_night_scene": "Run when a film starts.",
+          "paused_scene": "Run when playback is paused."
+        }
+      }
+    },
+    "error": {
+      "same_scene": "Movie night and Paused need different scenes."
+    }
+  }
+}

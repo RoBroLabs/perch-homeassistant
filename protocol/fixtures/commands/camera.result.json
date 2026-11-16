@@ -1,0 +1,9 @@
+{
+  "id": 4,
+  "type": "result",
+  "success": true,
+  "result": {
+    "url": "/api/perch/media/camera.front_door/snapshot?token=abc123",
+    "expires_at": "2026-11-15T20:35:00Z"
+  }
+}

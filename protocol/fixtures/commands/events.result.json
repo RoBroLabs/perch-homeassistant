@@ -1,0 +1,29 @@
+{
+  "id": 8,
+  "type": "result",
+  "success": true,
+  "result": {
+    "events": [
+      {
+        "id": "ev_20261115_2041",
+        "camera_id": "camera.front_door",
+        "label": "Person",
+        "started_at": "2026-11-15T20:41:10Z",
+        "ended_at": "2026-11-15T20:41:52Z",
+        "snapshot_url": "/api/perch/media/ev_20261115_2041/snapshot",
+        "clip_url": "/api/perch/media/ev_20261115_2041/clip",
+        "expires_at": "2026-11-15T21:41:52Z"
+      },
+      {
+        "id": "ev_20261115_2105",
+        "camera_id": "camera.front_door",
+        "label": "Parcel",
+        "started_at": "2026-11-15T21:05:00Z",
+        "ended_at": null,
+        "snapshot_url": "/api/perch/media/ev_20261115_2105/snapshot",
+        "clip_url": null,
+        "expires_at": "2026-11-15T22:05:00Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": 4,
+  "type": "perch/camera",
+  "camera_id": "camera.front_door",
+  "kind": "snapshot"
+}

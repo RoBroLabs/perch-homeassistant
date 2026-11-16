@@ -1,0 +1,10 @@
+{
+  "id": 3,
+  "type": "perch/subscribe",
+  "topics": [
+    "doorbell",
+    "events",
+    "states",
+    "manifest"
+  ]
+}

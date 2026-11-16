@@ -1,0 +1,1610 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://perch.invalid/protocol/1/perch.schema.json",
+  "title": "Perch protocol 1",
+  "$defs": {
+    "Base64": {
+      "type": "string",
+      "minLength": 4,
+      "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+      "description": "Standard base64 with padding."
+    },
+    "Base64Key32": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]{43}=$",
+      "description": "Base64 of exactly 32 bytes."
+    },
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Opaque identifier."
+    },
+    "Timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      "description": "ISO 8601 UTC with Z."
+    },
+    "Day": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "UrlPath": {
+      "type": "string",
+      "pattern": "^/",
+      "description": "Path beginning with /, joined by the TV to its base URL."
+    },
+    "Role": {
+      "enum": [
+        "adult",
+        "teen",
+        "kid"
+      ]
+    },
+    "Topic": {
+      "enum": [
+        "doorbell",
+        "events",
+        "states",
+        "manifest"
+      ]
+    },
+    "CommandId": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "ErrorCode": {
+      "enum": [
+        "not_allowed",
+        "not_found",
+        "invalid_format",
+        "refused_for_role",
+        "rate_limited",
+        "unavailable",
+        "unknown_command",
+        "not_supported_yet"
+      ]
+    },
+    "Room": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "Light": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "room_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "dimmable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "room_id",
+        "dimmable"
+      ],
+      "additionalProperties": false
+    },
+    "Camera": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "room_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "room_id"
+      ],
+      "additionalProperties": false
+    },
+    "Doorbell": {
+      "type": "object",
+      "properties": {
+        "camera_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "camera_id"
+      ],
+      "additionalProperties": false
+    },
+    "Scene": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "oneOf": [
+            {
+              "enum": [
+                "movie_night",
+                "paused"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "purpose"
+      ],
+      "additionalProperties": false
+    },
+    "LightState": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "on": {
+          "type": "boolean"
+        },
+        "brightness": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "available": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "on",
+        "brightness",
+        "available"
+      ],
+      "additionalProperties": false
+    },
+    "EventItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "camera_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "label": {
+          "type": "string"
+        },
+        "started_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "ended_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_url": {
+          "$ref": "#/$defs/UrlPath"
+        },
+        "clip_url": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/UrlPath"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "camera_id",
+        "label",
+        "started_at",
+        "ended_at",
+        "snapshot_url",
+        "clip_url",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "PairStartRequest": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "const": 1
+        },
+        "tv_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "public_key": {
+          "$ref": "#/$defs/Base64Key32"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{22}==$",
+          "description": "Base64 of 16 bytes."
+        },
+        "hmac": {
+          "$ref": "#/$defs/Base64Key32"
+        }
+      },
+      "required": [
+        "protocol",
+        "tv_name",
+        "public_key",
+        "nonce",
+        "hmac"
+      ],
+      "additionalProperties": false
+    },
+    "PairStartResponse": {
+      "type": "object",
+      "properties": {
+        "pairing_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "expires_in": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "description": "Seconds left in the pairing window. Less than 300 when a TV joins a window that is already open. The TV counts down from this value."
+        }
+      },
+      "required": [
+        "pairing_id",
+        "expires_in"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusPending": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "pending"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusApproved": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "approved"
+        },
+        "tv_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "envelope": {
+          "$ref": "#/$defs/Base64"
+        }
+      },
+      "required": [
+        "status",
+        "tv_id",
+        "envelope"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusRejected": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "rejected"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusCancelled": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "cancelled"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusExpired": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "const": "expired"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "PairStatusResponse": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PairStatusPending"
+        },
+        {
+          "$ref": "#/$defs/PairStatusApproved"
+        },
+        {
+          "$ref": "#/$defs/PairStatusRejected"
+        },
+        {
+          "$ref": "#/$defs/PairStatusCancelled"
+        },
+        {
+          "$ref": "#/$defs/PairStatusExpired"
+        }
+      ]
+    },
+    "PairError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "enum": [
+            "bad_request",
+            "not_found",
+            "busy",
+            "rate_limited",
+            "not_local",
+            "pairing_local_only",
+            "unsupported_protocol"
+          ]
+        },
+        "retry_after": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "AuthRequiredFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "auth_required"
+        },
+        "protocol": {
+          "const": 1
+        },
+        "challenge": {
+          "$ref": "#/$defs/Base64Key32"
+        },
+        "server_key": {
+          "$ref": "#/$defs/Base64Key32"
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "challenge",
+        "server_key"
+      ],
+      "additionalProperties": false
+    },
+    "AuthFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "auth"
+        },
+        "protocol": {
+          "const": 1
+        },
+        "tv_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "proof": {
+          "$ref": "#/$defs/Base64"
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "tv_id",
+        "proof"
+      ],
+      "additionalProperties": false
+    },
+    "AuthOkFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "auth_ok"
+        },
+        "protocol": {
+          "const": 1
+        },
+        "companion_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "companion_version"
+      ],
+      "additionalProperties": false
+    },
+    "AuthInvalidFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "auth_invalid"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "RevokedFrame": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "revoked"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "PingFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "ping"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "PongFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "pong"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "ErrorResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": false
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "$ref": "#/$defs/ErrorCode"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/manifest"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestResult": {
+      "type": "object",
+      "properties": {
+        "tv_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "tv_name": {
+          "type": "string"
+        },
+        "room": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Room"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rooms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Room"
+          }
+        },
+        "lights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Light"
+          }
+        },
+        "cameras": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Camera"
+          }
+        },
+        "doorbell": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Doorbell"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scenes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scene"
+          }
+        },
+        "let_in_available": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tv_id",
+        "tv_name",
+        "room",
+        "rooms",
+        "lights",
+        "cameras",
+        "doorbell",
+        "scenes",
+        "let_in_available"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/ManifestResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "StatesCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/states"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "StatesResult": {
+      "type": "object",
+      "properties": {
+        "lights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LightState"
+          }
+        }
+      },
+      "required": [
+        "lights"
+      ],
+      "additionalProperties": false
+    },
+    "StatesResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/StatesResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "SubscribeCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/subscribe"
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Topic"
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "topics"
+      ],
+      "additionalProperties": false
+    },
+    "SubscribeResult": {
+      "type": "object",
+      "properties": {
+        "topics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Topic"
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "topics"
+      ],
+      "additionalProperties": false
+    },
+    "SubscribeResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/SubscribeResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "CameraCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/camera"
+        },
+        "camera_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "enum": [
+            "snapshot",
+            "stream"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "camera_id",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "CameraResult": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "$ref": "#/$defs/UrlPath"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "url",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "CameraResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/CameraResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "PlaybackCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/playback"
+        },
+        "state": {
+          "enum": [
+            "playing",
+            "paused",
+            "stopped"
+          ]
+        },
+        "media": {
+          "enum": [
+            "film",
+            "episode",
+            "music",
+            "other"
+          ]
+        },
+        "lighting": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "state",
+        "media",
+        "lighting"
+      ],
+      "additionalProperties": false
+    },
+    "PlaybackResult": {
+      "type": "object",
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "lighting_off",
+                "not_after_sunset",
+                "skipped_tonight",
+                "no_room"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "applied",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "PlaybackResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/PlaybackResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "LightCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/light"
+        },
+        "light_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "on": {
+          "type": "boolean"
+        },
+        "brightness": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "light_id"
+      ],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "on"
+          ]
+        },
+        {
+          "required": [
+            "brightness"
+          ]
+        }
+      ]
+    },
+    "LightResult": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "LightResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/LightResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "SceneCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/scene"
+        },
+        "scene_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "scene_id"
+      ],
+      "additionalProperties": false
+    },
+    "SceneResult": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "SceneResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/SceneResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "EventsCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/events"
+        },
+        "day": {
+          "$ref": "#/$defs/Day"
+        },
+        "camera_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "day",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "EventsResult": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EventItem"
+          }
+        }
+      },
+      "required": [
+        "events"
+      ],
+      "additionalProperties": false
+    },
+    "EventsResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/EventsResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "SkipTonightCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/skip_tonight"
+        },
+        "until": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "until"
+      ],
+      "additionalProperties": false
+    },
+    "SkipTonightResult": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "SkipTonightResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/SkipTonightResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "UnpairCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/unpair"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "UnpairResult": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "UnpairResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/UnpairResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    "LetInCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/let_in"
+        },
+        "sealed_pin": {
+          "$ref": "#/$defs/Base64"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "sealed_pin"
+      ],
+      "additionalProperties": false,
+      "x-reserved": "1.5.0"
+    },
+    "LetInResult": {
+      "type": "object",
+      "properties": {
+        "opened": {
+          "type": "boolean"
+        },
+        "refusal": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "no_ring",
+                "wrong_pin",
+                "locked_out",
+                "not_allowed"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "opened",
+        "refusal"
+      ],
+      "additionalProperties": false,
+      "x-reserved": "1.5.0"
+    },
+    "LetInResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/LetInResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false,
+      "x-reserved": "1.5.0"
+    },
+    "ResultFrame": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ErrorResultFrame"
+        },
+        {
+          "$ref": "#/$defs/ManifestResultFrame"
+        },
+        {
+          "$ref": "#/$defs/StatesResultFrame"
+        },
+        {
+          "$ref": "#/$defs/SubscribeResultFrame"
+        },
+        {
+          "$ref": "#/$defs/CameraResultFrame"
+        },
+        {
+          "$ref": "#/$defs/PlaybackResultFrame"
+        },
+        {
+          "$ref": "#/$defs/LightResultFrame"
+        },
+        {
+          "$ref": "#/$defs/SceneResultFrame"
+        },
+        {
+          "$ref": "#/$defs/EventsResultFrame"
+        },
+        {
+          "$ref": "#/$defs/SkipTonightResultFrame"
+        },
+        {
+          "$ref": "#/$defs/UnpairResultFrame"
+        },
+        {
+          "$ref": "#/$defs/LetInResultFrame"
+        }
+      ]
+    },
+    "CommandFrame": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ManifestCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/StatesCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/SubscribeCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/CameraCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/PlaybackCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/LightCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/SceneCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/EventsCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/SkipTonightCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/UnpairCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/LetInCommandFrame"
+        }
+      ]
+    },
+    "DoorbellEventFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "event"
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "const": "doorbell"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "camera_id": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/Id"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "rang_at": {
+                  "$ref": "#/$defs/Timestamp"
+                }
+              },
+              "required": [
+                "camera_id",
+                "rang_at"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "topic",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "StatesEventFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "event"
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "const": "states"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "lights": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/LightState"
+                  }
+                }
+              },
+              "required": [
+                "lights"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "topic",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestEventFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "event"
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "const": "manifest"
+            },
+            "data": {
+              "type": "object",
+              "properties": {},
+              "required": [],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "topic",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "EventsEventFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "event"
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "const": "events"
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "event": {
+                  "$ref": "#/$defs/EventItem"
+                }
+              },
+              "required": [
+                "event"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "topic",
+            "data"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "EventFrame": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/DoorbellEventFrame"
+        },
+        {
+          "$ref": "#/$defs/StatesEventFrame"
+        },
+        {
+          "$ref": "#/$defs/ManifestEventFrame"
+        },
+        {
+          "$ref": "#/$defs/EventsEventFrame"
+        }
+      ]
+    }
+  }
+}

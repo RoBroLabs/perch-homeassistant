@@ -1,0 +1,17 @@
+{
+  "domain": "perch",
+  "name": "Perch for Home Assistant",
+  "codeowners": [
+    "@RoBroLabs/perch"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http"
+  ],
+  "documentation": "https://github.com/RoBroLabs/perch-homeassistant",
+  "integration_type": "hub",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/RoBroLabs/perch-homeassistant/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
