@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest something Perch for Home Assistant could do.
+labels: ["enhancement", "needs triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do
+      description: Describe what you want to do with Perch and Home Assistant, and why.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you imagine it working
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you have tried instead

@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in Perch for Home Assistant does not work as described.
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please do not post tokens, passwords, addresses or camera links here.
+        For a security problem, use **Report a vulnerability** on the Security tab instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Perch for Home Assistant version
+      placeholder: "0.1.1"
+    validations:
+      required: true
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.0"
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Perch app version on the Apple TV
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Pairing
+        - Lights, scenes or moods
+        - Doorbell
+        - Cameras or Frigate events
+        - Options or per-TV setup
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug log
+      description: |
+        Turn on debug logging for Perch (Settings > Devices & services > Perch for Home Assistant > Enable debug logging),
+        reproduce the problem, then paste the relevant lines. Remove anything private first.
+      render: text

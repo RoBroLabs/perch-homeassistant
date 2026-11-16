@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/RoBroLabs/perch-homeassistant/security/advisories/new
+    about: Please report security problems privately, not in a public issue.
+  - name: Full guide and troubleshooting
+    url: https://github.com/RoBroLabs/perch-homeassistant/blob/main/docs/guide.md
+    about: Many questions are answered in the guide.
