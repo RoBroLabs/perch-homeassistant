@@ -1,3 +1,11 @@
+<img src="https://raw.githubusercontent.com/RoBroLabs/perch-homeassistant/main/custom_components/perch/brand/logo@2x.png" alt="Perch" height="120">
+
+[![release](https://img.shields.io/github/v/release/RoBroLabs/perch-homeassistant?label=release)](https://github.com/RoBroLabs/perch-homeassistant/releases)
+[![build](https://img.shields.io/github/actions/workflow/status/RoBroLabs/perch-homeassistant/tests.yml?branch=main&label=build)](https://github.com/RoBroLabs/perch-homeassistant/actions/workflows/tests.yml)
+[![validate](https://img.shields.io/github/actions/workflow/status/RoBroLabs/perch-homeassistant/validate.yml?branch=main&label=validate)](https://github.com/RoBroLabs/perch-homeassistant/actions/workflows/validate.yml)
+[![license](https://img.shields.io/github/license/RoBroLabs/perch-homeassistant?label=license)](https://github.com/RoBroLabs/perch-homeassistant/blob/main/LICENSE)
+[![HACS](https://img.shields.io/badge/HACS-custom-orange)](https://hacs.xyz)
+
 # Perch for Home Assistant
 
 Perch is the Apple TV app by RoBroLabs. This integration lets Perch show the rooms, lights, scenes and cameras you choose, dim the lights while you watch, and show your doorbell camera when someone rings.
@@ -10,21 +18,22 @@ Perch is the Apple TV app by RoBroLabs. This integration lets Perch show the roo
 
 ## Install
 
-1. In HACS, search for **Perch for Home Assistant** and choose **Download**.
-2. Restart Home Assistant.
+Easiest install is through HACS:
 
-If the search finds nothing, add `https://github.com/RoBroLabs/perch-homeassistant` in HACS as a custom repository (type Integration).
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=RoBroLabs&repository=perch-homeassistant&category=integration)
+
+1. Choose **Download**, then restart Home Assistant.
+2. Go to **Settings > Devices & services > Add integration** and choose **Perch for Home Assistant**.
 
 ## Pair a TV
 
 You do this once per TV. You never type a token or a password.
 
-1. In Home Assistant, go to **Settings > Devices & services > Add integration** and choose **Perch for Home Assistant**.
-2. Open **Configure** on the Perch entry and choose what your TVs may use.
-3. On the TV, open Perch and choose to pair with Home Assistant. The TV shows a 6-digit code.
-4. In Home Assistant, on the Perch entry, choose **Pair a TV** and type the code.
-5. Home Assistant and the TV each show four words. If they match, choose **The words match**. If not, choose **They do not match** and start again.
-6. Set the TV's room: on the TV's row, open the three-dots menu and choose **Reconfigure**.
+1. Open **Configure** on the Perch entry and choose what your TVs may use.
+2. On the TV, open Perch and choose to pair with Home Assistant. The TV shows a 6-digit code.
+3. In Home Assistant, on the Perch entry, choose **Pair a TV** and type the code.
+4. Home Assistant and the TV each show four words. If they match, choose **The words match**. If not, choose **They do not match** and start again.
+5. Set the TV's room: on the TV's row, open the three-dots menu and choose **Reconfigure**.
 
 Start on the TV first. A pairing lasts 5 minutes and works only on your home network.
 

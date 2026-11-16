@@ -17,6 +17,8 @@ PATTERNS = [
     re.compile(rf"github\.com/(?P<o>{NAME})/{REPO}"),
     re.compile(rf"githubusercontent\.com/(?P<o>{NAME})/{REPO}"),
     re.compile(rf"owner=(?P<o>{NAME})&(?:amp;)?repository={REPO}"),
+    # README badges, e.g. img.shields.io/github/v/release/<owner>/<repo>
+    re.compile(rf"img\.shields\.io/github/[A-Za-z0-9/._-]*?/(?P<o>{NAME})/{REPO}"),
 ]
 # Code owner entry, only in manifest.json files: a user ("@owner") or an
 # organisation team ("@owner/team"); only the owner part is checked or swapped.
