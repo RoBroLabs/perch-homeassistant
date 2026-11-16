@@ -3,6 +3,11 @@
 All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.1] - 2026-11-16
+
+### Changed
+- The HACS page is now a short guide for users, with the Perch logo, status badges and an Open in HACS button. The full guide moved to `docs/guide.md`.
+
 ## [0.1.0] - 2026-11-16
 
 First early release.

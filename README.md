@@ -5,6 +5,9 @@
 [![validate](https://img.shields.io/github/actions/workflow/status/RoBroLabs/perch-homeassistant/validate.yml?branch=main&label=validate)](https://github.com/RoBroLabs/perch-homeassistant/actions/workflows/validate.yml)
 [![license](https://img.shields.io/github/license/RoBroLabs/perch-homeassistant?label=license)](https://github.com/RoBroLabs/perch-homeassistant/blob/main/LICENSE)
 [![HACS](https://img.shields.io/badge/HACS-custom-orange)](https://hacs.xyz)
+[![last commit](https://img.shields.io/github/last-commit/RoBroLabs/perch-homeassistant?label=last%20commit)](https://github.com/RoBroLabs/perch-homeassistant/commits/main)
+[![commit activity](https://img.shields.io/github/commit-activity/m/RoBroLabs/perch-homeassistant?label=commit%20activity)](https://github.com/RoBroLabs/perch-homeassistant/commits/main)
+[![installs](https://img.shields.io/badge/dynamic/json?label=installs&color=41BDF5&cacheSeconds=15600&url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&query=%24.perch.total)](https://analytics.home-assistant.io/custom_integrations.json)
 
 # Perch for Home Assistant
 
