@@ -17,7 +17,6 @@ Perch is the Apple TV app by RoBroLabs. This integration lets Perch show the roo
 
 - Home Assistant 2026.8 or later.
 - The Perch app on an Apple TV, on the same home network as Home Assistant.
-- Optional: the Frigate integration, for recent camera events.
 
 ## Install
 
@@ -46,9 +45,7 @@ Start on the TV first. A pairing lasts 5 minutes and works only on your home net
 - Run the scenes you choose.
 - Dim the lights in the TV's room while a film plays, and put them back afterwards.
 - Show your doorbell camera on the TV when someone rings.
-- Show recent camera events from Frigate.
 - Give each TV its own scope, so one TV can see less than another.
-- Keep camera events away from Kids profiles.
 
 What Perch never does:
 
@@ -58,7 +55,7 @@ What Perch never does:
 
 ## Need more?
 
-- [Full guide](https://github.com/RoBroLabs/perch-homeassistant/blob/main/docs/guide.md): options, moods, doorbell, Frigate, troubleshooting and security.
+- [Full guide](https://github.com/RoBroLabs/perch-homeassistant/blob/main/docs/guide.md): options, moods, doorbell, troubleshooting and security.
 - [Developer notes](https://github.com/RoBroLabs/perch-homeassistant/blob/main/docs/development.md)
 - [Report a problem](https://github.com/RoBroLabs/perch-homeassistant/issues)
 

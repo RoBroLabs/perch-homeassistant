@@ -7,7 +7,6 @@ Perch for Home Assistant is the companion for Perch, the Apple TV app by RoBroLa
 - Home Assistant 2026.8.0 or later.
 - The Perch app on an Apple TV, on the same local network as Home Assistant.
 - HACS, for the easy install.
-- Optional: the official Frigate integration (version 5), for camera events.
 
 ## Install
 
@@ -61,13 +60,12 @@ Each TV has a scope: the rooms you give it and the cameras and scenes you chose 
 - Set the lights in its own room while it plays something (see [Moods](#moods)).
 - Be told when your doorbell rings, with the doorbell camera if you chose one (see [Doorbell](#doorbell)).
 - Open snapshots and live views of the cameras in its scope.
-- List camera events for a day it asks for, if Frigate is set up (see [Frigate camera events](#frigate-camera-events)).
 
 **It cannot:**
 
 - Use Home Assistant as an administrator. Its credential works for Perch only and is refused by Home Assistant's own API.
 - Use a light, scene or camera outside its scope. Switches are never included.
-- See other devices, who is home, or any history beyond Frigate camera events.
+- See other devices, who is home, or any history.
 - Open a door or touch a lock, except through a scene you chose.
 - Keep camera pictures. Perch does not store them.
 - Send your house data anywhere. There is no Perch server, no cloud and no telemetry.
@@ -116,15 +114,11 @@ Choose a doorbell trigger in Options. It can be:
 
 When it rings, every paired TV that is connected and has asked for doorbell alerts is told straight away. The alert carries the time and, if you chose one, the doorbell camera. If that camera is not one of your chosen cameras, no camera is sent. The doorbell is not limited to a room. A TV that is not connected at that moment misses the ring.
 
-## Frigate camera events
+## Camera events
 
-- You need the official Frigate integration, version 5, and the cameras you chose in Perch must be that integration's cameras.
-- Perch asks Frigate through Home Assistant and lists up to 100 events for the day the TV asks for, newest first, from the cameras that TV may see. Events without a snapshot are left out. Kids profiles get no events.
-- Pictures and clips reach the TV through short-lived links served by Home Assistant. They last 5 minutes. Frigate's address and credentials never reach the TV.
-- If Frigate is missing, an unsupported version or not answering, Perch says events are unavailable. Nothing else breaks.
-- The TV fetches events when you open the list.
+A list of recent camera events is not part of this release. If the TV asks for one, Perch says events are unavailable. Nothing else breaks.
 
-Live views and snapshots work with or without Frigate, for chosen cameras that offer a snapshot or a stream to Home Assistant.
+Live views and snapshots work for chosen cameras that offer a snapshot or a stream to Home Assistant.
 
 ## Options
 
@@ -176,8 +170,8 @@ Check, in order: the TV has a room (Reconfigure); it is after sunset; lighting i
 **The doorbell does not show.**
 Check that a trigger is chosen in Options, that it is a `binary_sensor` or `event` entity, and that the TV is connected. For a camera picture, choose a doorbell camera from your chosen cameras.
 
-**Frigate events are unavailable.**
-Check that the official Frigate integration (version 5) is installed and loaded, and that the cameras you chose in Perch are Frigate's. Home Assistant's log says when a Frigate version is not supported.
+**Camera events are unavailable.**
+That is expected. This release has no camera events list.
 
 **How do I get debug logs?**
 Add this to `configuration.yaml`, then restart Home Assistant:

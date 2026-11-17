@@ -10,7 +10,6 @@ from homeassistant.core import HomeAssistant, callback
 
 from .access import Origin
 from .const import DOMAIN
-from .frigate import MediaTokens
 from .pairing import PairingManager, RateLimiter
 
 if TYPE_CHECKING:
@@ -63,8 +62,6 @@ class PerchRuntime:
     # Where each open socket came from, so Cloud ones can be closed when the
     # admin turns Cloud access off.
     origins: dict[web.WebSocketResponse, Origin] = field(default_factory=dict)
-    media: MediaTokens = field(default_factory=MediaTokens)
-    frigate_warned: set[str] = field(default_factory=set)
     moods: MoodEngine | None = None
     hub: PushHub | None = None
 
