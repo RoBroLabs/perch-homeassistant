@@ -14,7 +14,7 @@ from .hub import PushHub
 from .moods import MoodEngine
 from .runtime import PerchRuntime, get_runtime
 from .endpoint import close_all_sockets, close_cloud_sockets, revoke_sockets
-from .views import MediaView, PairStatusView, PairView, WsView
+from .views import PairStatusView, PairView, WsView
 
 _LOGGER = logging.getLogger(__name__)
 _VIEWS_KEY = f"{DOMAIN}_views_registered"
@@ -26,7 +26,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.http.register_view(PairView())
         hass.http.register_view(PairStatusView())
         hass.http.register_view(WsView())
-        hass.http.register_view(MediaView())
         hass.data[_VIEWS_KEY] = True
     runtime = PerchRuntime(entry=entry)
     runtime.moods = MoodEngine(hass, entry)

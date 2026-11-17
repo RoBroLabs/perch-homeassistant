@@ -63,9 +63,3 @@ STORE_KEY = "perch.moods"
 STORE_VERSION = 1
 # The longest a skip-tonight may reach ahead.
 SKIP_MAX_HOURS = 24
-
-# Frigate events, through the official Frigate integration.
-FRIGATE_DOMAIN = "frigate"
-FRIGATE_TESTED_VERSIONS = ("5.15.6",)
-FRIGATE_SUPPORTED_MAJOR = 5
-MEDIA_LIFETIME = timedelta(minutes=5)

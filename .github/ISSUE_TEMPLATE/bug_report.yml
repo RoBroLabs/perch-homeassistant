@@ -40,7 +40,7 @@ body:
         - Pairing
         - Lights, scenes or moods
         - Doorbell
-        - Cameras or Frigate events
+        - Cameras
         - Options or per-TV setup
         - Other
     validations:

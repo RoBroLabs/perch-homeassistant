@@ -16,7 +16,6 @@ from homeassistant.core import Context, HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from .const import SKIP_MAX_HOURS
-from .frigate import FrigateUnavailable, async_list_events, utc_timestamp
 from .runtime import get_runtime
 from .scope import (
     TvScope,
@@ -208,50 +207,14 @@ async def _cmd_events(
         datetime.strptime(day, "%Y-%m-%d")
     except ValueError:
         raise CommandError("invalid_format", "day is not a date") from None
-    # The kid rule comes before any Frigate call.
+    # The kid rule comes first, so a Kids profile learns nothing else.
     if not role_may_view_events(role):
         raise CommandError("refused_for_role", "not available for this profile")
     if camera_id is not None and camera_id not in scope.cameras:
         raise CommandError("not_allowed", "camera not allowed for this TV")
-    runtime = get_runtime(hass)
-    if runtime is None:
-        raise CommandError("unavailable", "events are not available")
-    cameras = {camera_id} if camera_id is not None else set(scope.cameras)
-    try:
-        found = await async_list_events(hass, cameras, day, runtime.frigate_warned)
-    except FrigateUnavailable:
-        raise CommandError("unavailable", "events are not available") from None
-    events = []
-    for entry_id, cam, event_id, raw in found:
-        start, end = raw.get("start_time"), raw.get("end_time")
-        # The schema needs a snapshot_url, so an event without a snapshot is left out.
-        if raw.get("has_snapshot") is not True:
-            continue
-        snap, expires = runtime.media.issue(
-            entry_id, event_id, "snapshot", scope.tv_id, cam
-        )
-        clip_url = None
-        if raw.get("has_clip") is True:
-            clip, _ = runtime.media.issue(entry_id, event_id, "clip", scope.tv_id, cam)
-            clip_url = f"/api/perch/media/{clip}/clip"
-        ended = (
-            utc_timestamp(end)
-            if isinstance(end, (int, float)) and not isinstance(end, bool)
-            else None
-        )
-        events.append(
-            {
-                "id": event_id,
-                "camera_id": cam,
-                "label": str(raw.get("label") or "event"),
-                "started_at": utc_timestamp(start),
-                "ended_at": ended,
-                "snapshot_url": f"/api/perch/media/{snap}/snapshot",
-                "clip_url": clip_url,
-                "expires_at": expires.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            }
-        )
-    return {"events": events}
+    # Camera events are not in this release: there is no source for them yet
+    # that Home Assistant or a camera integration exposes publicly.
+    raise CommandError("unavailable", "events are not available")
 
 
 _TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")

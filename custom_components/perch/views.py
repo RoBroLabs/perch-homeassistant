@@ -11,28 +11,21 @@ import logging
 import math
 from typing import Any
 
-import aiohttp
 from aiohttp import web
 
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.http import HomeAssistantView
 
 from .access import Origin, request_allowed, request_origin
 from .const import CONF_ALLOW_CLOUD, PAIRING_TTL
 from .endpoint import handle_ws
-from .frigate import media_target
 from .pairing import TV_NAME_MAX, BusyError, PairingStatus, RateLimiter, _now
 from .runtime import PerchRuntime, get_runtime
-from .scope import build_scope
 
 _LOGGER = logging.getLogger(__name__)
 
 PAIR_URL = "/api/perch/pair"
 PAIR_STATUS_URL = "/api/perch/pair/{pairing_id}"
 WS_URL = "/api/perch/ws"
-MEDIA_URL = "/api/perch/media/{token}/{kind}"
-SNAPSHOT_MAX = 10 * 1024 * 1024
-CLIP_CHUNK = 64 * 1024
 PROTOCOL_VERSION = 1
 
 
@@ -184,100 +177,3 @@ class PairStatusView(HomeAssistantView):
                 }
             )
         return self.json({"status": status.value})
-
-
-class MediaView(HomeAssistantView):
-    """A Frigate snapshot or clip, by a short-lived token the companion issued:
-    `GET /api/perch/media/{token}/{kind}`. The token is the credential."""
-
-    url = MEDIA_URL
-    name = "api:perch:media"
-    requires_auth = False
-
-    async def get(self, request: web.Request, token: str, kind: str) -> web.StreamResponse:
-        hass = request.app["hass"]
-        runtime = get_runtime(hass)
-        if runtime is None:
-            return web.Response(status=HTTPStatus.NOT_FOUND)
-        allow_cloud = runtime.entry.options.get(CONF_ALLOW_CLOUD, False)
-        if not request_allowed(hass, request, allow_cloud=allow_cloud):
-            return web.Response(status=HTTPStatus.FORBIDDEN)
-        if kind not in ("snapshot", "clip"):
-            return web.Response(status=HTTPStatus.NOT_FOUND)
-        grant = runtime.media.lookup(token, kind)
-        if grant is None:
-            return web.Response(status=HTTPStatus.NOT_FOUND)
-        # The TV must still exist and still be allowed this camera.
-        scope = build_scope(hass, runtime.entry, grant.tv_id)
-        if scope is None or grant.camera_id not in scope.cameras:
-            return web.Response(status=HTTPStatus.NOT_FOUND)
-        target = media_target(hass, grant.entry_id, grant.event_id, kind)
-        if target is None:
-            return web.Response(status=HTTPStatus.NOT_FOUND)
-        upstream_url, client = target
-        headers: dict[str, str] = {}
-        kwargs: dict[str, Any] = {}
-        try:
-            if hasattr(client, "get_auth_headers"):
-                headers = dict(await client.get_auth_headers() or {})
-        except Exception:  # noqa: BLE001
-            return web.Response(status=HTTPStatus.BAD_GATEWAY)
-        if hasattr(client, "validate_ssl"):
-            kwargs["ssl"] = client.validate_ssl
-        if kind == "clip" and (rng := request.headers.get("Range")):
-            headers["Range"] = rng
-        session = async_get_clientsession(hass)
-        try:
-            timeout = aiohttp.ClientTimeout(
-                total=15 if kind == "snapshot" else None,
-                sock_connect=10,
-                sock_read=30,
-            )
-            async with session.get(
-                upstream_url, headers=headers, timeout=timeout, **kwargs
-            ) as upstream:
-                if upstream.status not in (200, 206):
-                    status = (
-                        HTTPStatus.NOT_FOUND
-                        if upstream.status == 404
-                        else HTTPStatus.BAD_GATEWAY
-                    )
-                    return web.Response(status=status)
-                if kind == "snapshot":
-                    parts: list[bytes] = []
-                    size = 0
-                    async for chunk in upstream.content.iter_chunked(65536):
-                        size += len(chunk)
-                        if size > SNAPSHOT_MAX:
-                            return web.Response(status=HTTPStatus.BAD_GATEWAY)
-                        parts.append(chunk)
-                    return web.Response(
-                        body=b"".join(parts),
-                        content_type="image/jpeg",
-                        headers={"Cache-Control": "private, no-store"},
-                    )
-                out_headers = {
-                    "Content-Type": "video/mp4",
-                    "Cache-Control": "private, no-store",
-                }
-                names = ["Accept-Ranges", "Content-Range"]
-                # A decoded body no longer matches the upstream length.
-                if not upstream.headers.get("Content-Encoding"):
-                    names.append("Content-Length")
-                for name in names:
-                    if value := upstream.headers.get(name):
-                        out_headers[name] = value
-                response = web.StreamResponse(
-                    status=upstream.status, headers=out_headers
-                )
-                await response.prepare(request)
-                try:
-                    async for chunk in upstream.content.iter_chunked(CLIP_CHUNK):
-                        await response.write(chunk)
-                    await response.write_eof()
-                except (aiohttp.ClientError, TimeoutError) as err:
-                    # Headers are already sent: no new response is possible.
-                    _LOGGER.debug("Clip stream ended early: %r", err)
-                return response
-        except (aiohttp.ClientError, TimeoutError):
-            return web.Response(status=HTTPStatus.BAD_GATEWAY)

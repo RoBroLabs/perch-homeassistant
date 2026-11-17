@@ -36,7 +36,7 @@ Perch needs no Home Assistant token. Everything below is done in the Home Assist
 - **Wrong code:** type a wrong code. Home Assistant says "That code is not right". After the allowed number of wrong codes the pairing stops.
 - **Moods:** after sunset, with a room set for the TV and lighting turned on in the app, and with a Movie night scene set, start a film on the TV. The room dims. Pause it and the Paused scene runs. Stop it and, after the restore timeout at the latest, the lights return to how they were.
 - **Doorbell:** trigger the doorbell sensor or event you chose (Developer tools > States works for a binary sensor). The TV shows the doorbell camera.
-- **Frigate:** if the official Frigate integration is installed and its cameras are chosen, open the events view on the TV. Events appear and their pictures and clips play. Without Frigate the TV is told events are unavailable.
+- **Camera events:** open the events view on the TV. The TV is told events are unavailable, and nothing else breaks.
 - **Logs:** open Settings > System > Logs and filter for "perch". There must be no code, credential or token in it.
 
 ## Remove a TV or Perch

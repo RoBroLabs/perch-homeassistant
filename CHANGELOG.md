@@ -3,6 +3,11 @@
 All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2] - 2026-11-17
+
+### Removed
+- Camera events from Frigate, and the picture and clip links that went with them. They relied on the Frigate integration's private data rather than anything it exposes publicly, so they could break on any Frigate update. The TV is now told events are unavailable. Live views, snapshots and the doorbell are unchanged.
+
 ## [0.1.1] - 2026-11-16
 
 ### Changed
