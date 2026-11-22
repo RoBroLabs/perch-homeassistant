@@ -246,5 +246,29 @@
   {
     "file": "commands/notify.result.rate_limited.json",
     "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.disabled.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.not_allowed.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.locked_out.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.no_ring.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.wrong_pin.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/error.invalid_format.json",
+    "def": "ErrorResultFrame"
   }
 ]

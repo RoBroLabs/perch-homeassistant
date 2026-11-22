@@ -420,8 +420,11 @@ async def test_unknown_and_reserved_types(client, world):
     assert data["error"]["code"] == "unknown_command"
     await ws.send_json({"id": 2, "type": "config/auth/list"})
     assert (await recv(ws, "ErrorResultFrame"))["error"]["code"] == "unknown_command"
-    await ws.send_json({"id": 3, "type": "perch/let_in", "sealed_pin": "AAAA"})
+    await ws.send_json({"id": 3, "type": "perch/unpair"})
     assert (await recv(ws, "ErrorResultFrame"))["error"]["code"] == "not_supported_yet"
+    # Let-in is built now: a seal that is not even the right size is refused.
+    await ws.send_json({"id": 4, "type": "perch/let_in", "sealed_pin": "AAAA"})
+    assert (await recv(ws, "ErrorResultFrame"))["error"]["code"] == "invalid_format"
 
 
 async def test_two_tvs_never_reach_each_other(client, world):

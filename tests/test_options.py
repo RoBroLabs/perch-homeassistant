@@ -54,6 +54,7 @@ async def test_options_round_trip(hass):
         "notify_services": [],
         "notify_request_ready": False,
         "notify_include_title": False,
+        "let_in_enabled": False,
     }
     assert type(entry.options["restore_timeout"]) is int
     assert type(entry.options["pairing_attempts"]) is int
@@ -142,6 +143,7 @@ async def test_reconfigure_stores_rooms_and_keeps_keys(hass):
         "credential_hash": "H",
         "room_id": lounge.id,
         "rooms": [lounge.id, kitchen.id],
+        "let_in_allowed": False,
     }
     # The device survives the update.
     reg = dr.async_get(hass)

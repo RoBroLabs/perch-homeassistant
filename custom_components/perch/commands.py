@@ -16,6 +16,7 @@ from homeassistant.core import Context, HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from .const import SKIP_MAX_HOURS
+from .let_in import LetInError
 from .notify import KINDS, TITLE_ID, clean_title_name
 from .runtime import get_runtime
 from .scope import (
@@ -34,7 +35,6 @@ URL_LIFETIME = timedelta(minutes=5)
 # Valid in the schema, not supported yet.
 RESERVED = {
     "perch/unpair",
-    "perch/let_in",
 }
 
 
@@ -276,6 +276,26 @@ async def _cmd_notify(
     return result
 
 
+async def _cmd_let_in(
+    hass: HomeAssistant, scope: TvScope, frame: dict[str, Any], session: Any
+) -> dict[str, Any]:
+    # Only `sealed_pin` is read. A role or any other field is ignored: the PIN,
+    # the ring and the allow-list are the boundary, not the TV's own checks.
+    runtime = get_runtime(hass)
+    if runtime is None or runtime.let_in is None:
+        raise CommandError("unavailable", "let-in is not available")
+    try:
+        return await runtime.let_in.async_request(
+            tv_name=scope.tv_name,
+            tv_allowed=scope.let_in_allowed,
+            session=session,
+            command_id=frame["id"],
+            sealed_pin=frame.get("sealed_pin"),
+        )
+    except LetInError as err:
+        raise CommandError(err.code, err.message) from None
+
+
 def _moods(hass: HomeAssistant):
     runtime = get_runtime(hass)
     if runtime is None or runtime.moods is None:
@@ -289,6 +309,7 @@ async def run_command(
     tv_id: str,
     frame: dict[str, Any],
     ws: Any = None,
+    session: Any = None,
 ) -> dict[str, Any]:
     """Run one command for the bound TV. Returns the result, or raises
     CommandError (an error frame) or Revoked (the TV is gone)."""
@@ -306,6 +327,7 @@ async def run_command(
         "perch/scene",
         "perch/events",
         "perch/notify",
+        "perch/let_in",
     ):
         raise CommandError("unknown_command", "unknown command")
     scope = build_scope(hass, entry, tv_id)
@@ -325,6 +347,8 @@ async def run_command(
         return await _cmd_scene(hass, scope, frame)
     if ctype == "perch/events":
         return await _cmd_events(hass, scope, frame)
+    if ctype == "perch/let_in":
+        return await _cmd_let_in(hass, scope, frame, session)
     if ctype == "perch/notify":
         return await _cmd_notify(hass, scope, frame)
     if ctype == "perch/states":

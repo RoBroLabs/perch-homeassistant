@@ -1276,7 +1276,9 @@
           "const": "perch/let_in"
         },
         "sealed_pin": {
-          "$ref": "#/$defs/Base64"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/]{102}==$",
+          "description": "Base64 of 76 bytes: ephPub(32) || nonce(12) || ciphertext(16) || tag(16). See the let-in seal in the protocol README."
         }
       },
       "required": [
@@ -1284,8 +1286,7 @@
         "type",
         "sealed_pin"
       ],
-      "additionalProperties": false,
-      "x-reserved": "1.5.0"
+      "additionalProperties": false
     },
     "LetInResult": {
       "type": "object",
@@ -1300,10 +1301,11 @@
             },
             {
               "enum": [
-                "no_ring",
-                "wrong_pin",
+                "disabled",
+                "not_allowed",
                 "locked_out",
-                "not_allowed"
+                "no_ring",
+                "wrong_pin"
               ]
             }
           ]
@@ -1313,8 +1315,7 @@
         "opened",
         "refusal"
       ],
-      "additionalProperties": false,
-      "x-reserved": "1.5.0"
+      "additionalProperties": false
     },
     "LetInResultFrame": {
       "type": "object",
@@ -1338,8 +1339,7 @@
         "success",
         "result"
       ],
-      "additionalProperties": false,
-      "x-reserved": "1.5.0"
+      "additionalProperties": false
     },
     "NotifyKind": {
       "enum": [

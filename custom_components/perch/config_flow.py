@@ -48,6 +48,13 @@ from .const import (
     CONF_CREDENTIAL_HASH,
     CONF_DOORBELL,
     CONF_DOORBELL_CAMERA,
+    CONF_LET_IN,
+    CONF_LET_IN_ALLOWED,
+    CONF_LET_IN_ENABLED,
+    CONF_LET_IN_PIN,
+    CONF_LET_IN_PIN_CONFIRM,
+    CONF_LET_IN_PIN_HASH,
+    CONF_LET_IN_SCRIPT,
     CONF_MOVIE_SCENE,
     CONF_NOTIFY_INCLUDE_TITLE,
     CONF_NOTIFY_REQUEST_READY,
@@ -137,6 +144,7 @@ class PerchOptionsFlow(OptionsFlow):
     """
 
     _options: dict[str, Any]
+    _reset_let_in: bool = False
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -146,6 +154,7 @@ class PerchOptionsFlow(OptionsFlow):
         if user_input is not None:
             advanced = user_input.get(CONF_ADVANCED, {})
             phone = user_input.get(CONF_PHONE, {})
+            let_in = user_input.get(CONF_LET_IN, {})
             options = {
                 CONF_CAMERAS: user_input.get(CONF_CAMERAS, []),
                 CONF_SCENES: user_input.get(CONF_SCENES, []),
@@ -161,7 +170,9 @@ class PerchOptionsFlow(OptionsFlow):
             }
             if user_input.get(CONF_DOORBELL):
                 options[CONF_DOORBELL] = user_input[CONF_DOORBELL]
-            errors = self._phone_options(phone, options)
+            errors = self._phone_options(phone, options) or await self._let_in_options(
+                let_in, options
+            )
             if not errors:
                 self._options = options
                 return await self.async_step_details()
@@ -209,6 +220,9 @@ class PerchOptionsFlow(OptionsFlow):
                 vol.Required(CONF_PHONE, default={}): section(
                     self._phone_schema(current), {"collapsed": True}
                 ),
+                vol.Required(CONF_LET_IN, default={}): section(
+                    self._let_in_schema(current), {"collapsed": True}
+                ),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema, errors=errors)
@@ -234,6 +248,67 @@ class PerchOptionsFlow(OptionsFlow):
                 ): BooleanSelector(),
             }
         )
+
+    def _let_in_on(self) -> bool:
+        runtime = get_runtime(self.hass)
+        if runtime is not None and runtime.let_in is not None:
+            return runtime.let_in.switched_on()
+        return bool(self.config_entry.options.get(CONF_LET_IN_ENABLED, False))
+
+    def _let_in_schema(self, current: Any) -> vol.Schema:
+        script = current.get(CONF_LET_IN_SCRIPT)
+        secret = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+        return vol.Schema(
+            {
+                vol.Required(CONF_LET_IN_ENABLED, default=self._let_in_on()): BooleanSelector(),
+                vol.Optional(
+                    CONF_LET_IN_SCRIPT,
+                    description={"suggested_value": script} if script else None,
+                ): EntitySelector(EntitySelectorConfig(domain="script")),
+                vol.Optional(CONF_LET_IN_PIN): secret,
+                vol.Optional(CONF_LET_IN_PIN_CONFIRM): secret,
+            }
+        )
+
+    async def _let_in_options(
+        self, let_in: dict[str, Any], options: dict[str, Any]
+    ) -> dict[str, str]:
+        """Copy the let-in section into `options`. A new PIN is stored only as a
+        slow salted hash; the PIN itself is never kept."""
+        current = self.config_entry.options
+        enabled = bool(let_in.get(CONF_LET_IN_ENABLED, False))
+        script = let_in.get(CONF_LET_IN_SCRIPT) or None
+        pin = let_in.get(CONF_LET_IN_PIN) or ""
+        confirm = let_in.get(CONF_LET_IN_PIN_CONFIRM) or ""
+        pin_hash = current.get(CONF_LET_IN_PIN_HASH)
+        if pin or confirm:
+            if pin != confirm:
+                return {"base": "let_in_pin_mismatch"}
+            if not crypto.valid_pin(pin):
+                return {"base": "let_in_pin_format"}
+            pin_hash = await self.hass.async_add_executor_job(crypto.hash_pin, pin)
+        del pin, confirm
+        if enabled and not script:
+            return {"base": "let_in_needs_script"}
+        if enabled and not pin_hash:
+            return {"base": "let_in_needs_pin"}
+        if enabled and not options.get(CONF_DOORBELL):
+            return {"base": "let_in_needs_doorbell"}
+        options[CONF_LET_IN_ENABLED] = enabled
+        if script:
+            options[CONF_LET_IN_SCRIPT] = script
+        if pin_hash:
+            options[CONF_LET_IN_PIN_HASH] = pin_hash
+        # Turning it on while it shows off (switched off, or turned off by a
+        # lockout) is the admin's re-enable: every lockout is forgotten.
+        self._reset_let_in = enabled and not self._let_in_on()
+        return {}
+
+    async def _finish(self, data: dict[str, Any]) -> ConfigFlowResult:
+        runtime = get_runtime(self.hass)
+        if self._reset_let_in and runtime is not None and runtime.let_in is not None:
+            await runtime.let_in.async_reset()
+        return self.async_create_entry(data=data)
 
     def _phone_options(self, phone: dict[str, Any], options: dict[str, Any]) -> dict[str, str]:
         """Copy the phone section into `options`; errors if it does not hold up."""
@@ -269,7 +344,7 @@ class PerchOptionsFlow(OptionsFlow):
         scenes = chosen[CONF_SCENES]
         can_camera = bool(cameras) and CONF_DOORBELL in chosen
         if not can_camera and not scenes:
-            return self.async_create_entry(data=chosen)
+            return await self._finish(chosen)
 
         current = self.config_entry.options
         errors: dict[str, str] = {}
@@ -281,7 +356,7 @@ class PerchOptionsFlow(OptionsFlow):
                 for key in (CONF_DOORBELL_CAMERA, CONF_MOVIE_SCENE, CONF_PAUSED_SCENE):
                     if user_input.get(key):
                         chosen[key] = user_input[key]
-                return self.async_create_entry(data=chosen)
+                return await self._finish(chosen)
 
         def suggested(key: str, pool: list[str]):
             value = (user_input or {}).get(key) or current.get(key)
@@ -334,7 +409,11 @@ class PairTvFlow(ConfigSubentryFlow):
             return self.async_update_and_abort(
                 self._get_entry(),
                 subentry,
-                data_updates={CONF_ROOM_ID: room, CONF_ROOMS: [room, *rooms]},
+                data_updates={
+                    CONF_ROOM_ID: room,
+                    CONF_ROOMS: [room, *rooms],
+                    CONF_LET_IN_ALLOWED: bool(user_input.get(CONF_LET_IN_ALLOWED, False)),
+                },
             )
         room = subentry.data.get(CONF_ROOM_ID)
         others = [a for a in subentry.data.get(CONF_ROOMS, []) if a != room]
@@ -346,6 +425,10 @@ class PairTvFlow(ConfigSubentryFlow):
                 vol.Optional(
                     CONF_ROOMS, description={"suggested_value": others}
                 ): AreaSelector(AreaSelectorConfig(multiple=True)),
+                vol.Required(
+                    CONF_LET_IN_ALLOWED,
+                    default=subentry.data.get(CONF_LET_IN_ALLOWED) is True,
+                ): BooleanSelector(),
             }
         )
         return self.async_show_form(
