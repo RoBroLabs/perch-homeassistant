@@ -662,6 +662,10 @@
         },
         "let_in_available": {
           "type": "boolean"
+        },
+        "notify_available": {
+          "type": "boolean",
+          "description": "True when the admin has set up phone notices for requests. Missing means false (companion 0.1.x)."
         }
       },
       "required": [
@@ -1337,6 +1341,94 @@
       "additionalProperties": false,
       "x-reserved": "1.5.0"
     },
+    "NotifyKind": {
+      "enum": [
+        "request_ready"
+      ]
+    },
+    "NotifyCommandFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "perch/notify"
+        },
+        "kind": {
+          "$ref": "#/$defs/NotifyKind"
+        },
+        "title_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:/-]{1,128}$",
+          "description": "A stable id for the title, used only to tell each title once. Never shown."
+        },
+        "title_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Shown only if the admin allows it. The companion strips control and markup characters and keeps at most 100 characters."
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "kind",
+        "title_id"
+      ],
+      "additionalProperties": false
+    },
+    "NotifyResult": {
+      "type": "object",
+      "properties": {
+        "sent": {
+          "type": "boolean"
+        },
+        "refusal": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "not_set_up",
+                "already_sent",
+                "rate_limited"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "sent",
+        "refusal"
+      ],
+      "additionalProperties": false
+    },
+    "NotifyResultFrame": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/CommandId"
+        },
+        "type": {
+          "const": "result"
+        },
+        "success": {
+          "const": true
+        },
+        "result": {
+          "$ref": "#/$defs/NotifyResult"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "success",
+        "result"
+      ],
+      "additionalProperties": false
+    },
     "ResultFrame": {
       "oneOf": [
         {
@@ -1374,6 +1466,9 @@
         },
         {
           "$ref": "#/$defs/LetInResultFrame"
+        },
+        {
+          "$ref": "#/$defs/NotifyResultFrame"
         }
       ]
     },
@@ -1411,6 +1506,9 @@
         },
         {
           "$ref": "#/$defs/LetInCommandFrame"
+        },
+        {
+          "$ref": "#/$defs/NotifyCommandFrame"
         }
       ]
     },

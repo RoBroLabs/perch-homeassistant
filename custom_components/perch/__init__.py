@@ -12,6 +12,7 @@ from .const import CONF_ALLOW_CLOUD, CONF_ROOM_ID, CONF_TV_ID, DOMAIN, SUBENTRY_
 from .access import Origin
 from .hub import PushHub
 from .moods import MoodEngine
+from .notify import PhoneNotifier
 from .runtime import PerchRuntime, get_runtime
 from .endpoint import close_all_sockets, close_cloud_sockets, revoke_sockets
 from .views import PairStatusView, PairView, WsView
@@ -30,6 +31,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime = PerchRuntime(entry=entry)
     runtime.moods = MoodEngine(hass, entry)
     await runtime.moods.async_load()
+    runtime.notifier = PhoneNotifier(hass, entry)
+    await runtime.notifier.async_load()
     runtime.hub = PushHub(hass, entry)
     runtime.hub.async_start()
     hass.data[DOMAIN] = runtime

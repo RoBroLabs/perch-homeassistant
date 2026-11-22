@@ -15,6 +15,7 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from .runtime import get_runtime
 from .const import (
     CONF_CAMERAS,
     CONF_DOORBELL,
@@ -194,7 +195,13 @@ def build_manifest(
         "doorbell": {"camera_id": scope.doorbell_camera} if scope.doorbell else None,
         "scenes": scenes,
         "let_in_available": False,
+        "notify_available": _notify_available(hass),
     }
+
+
+def _notify_available(hass: HomeAssistant) -> bool:
+    runtime = get_runtime(hass)
+    return bool(runtime and runtime.notifier and runtime.notifier.request_ready_available())
 
 
 def role_may_control_lights(role: str) -> bool:

@@ -16,6 +16,7 @@ from homeassistant.core import Context, HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from .const import SKIP_MAX_HOURS
+from .notify import KINDS, TITLE_ID, clean_title_name
 from .runtime import get_runtime
 from .scope import (
     TvScope,
@@ -254,6 +255,27 @@ async def _cmd_skip_tonight(
     return {}
 
 
+async def _cmd_notify(
+    hass: HomeAssistant, scope: TvScope, frame: dict[str, Any]
+) -> dict[str, Any]:
+    kind, title_id = frame.get("kind"), frame.get("title_id")
+    raw_name = frame.get("title_name")
+    if kind not in KINDS or not isinstance(title_id, str) or not TITLE_ID.match(title_id):
+        raise CommandError("invalid_format", "kind and title_id are required")
+    title_name = None
+    if raw_name is not None:
+        title_name = clean_title_name(raw_name)
+        if title_name is None:
+            raise CommandError("invalid_format", "title_name is 1 to 200 characters")
+    runtime = get_runtime(hass)
+    if runtime is None or runtime.notifier is None:
+        raise CommandError("unavailable", "phone notices are not available")
+    result = await runtime.notifier.async_request_ready(scope.tv_id, title_id, title_name)
+    if not result["sent"] and result["refusal"] is None:
+        raise CommandError("unavailable", "no phone took the message")
+    return result
+
+
 def _moods(hass: HomeAssistant):
     runtime = get_runtime(hass)
     if runtime is None or runtime.moods is None:
@@ -283,6 +305,7 @@ async def run_command(
         "perch/light",
         "perch/scene",
         "perch/events",
+        "perch/notify",
     ):
         raise CommandError("unknown_command", "unknown command")
     scope = build_scope(hass, entry, tv_id)
@@ -302,6 +325,8 @@ async def run_command(
         return await _cmd_scene(hass, scope, frame)
     if ctype == "perch/events":
         return await _cmd_events(hass, scope, frame)
+    if ctype == "perch/notify":
+        return await _cmd_notify(hass, scope, frame)
     if ctype == "perch/states":
         return _cmd_states(hass, entry, scope, frame)
     return await _cmd_camera(hass, entry, scope, frame)

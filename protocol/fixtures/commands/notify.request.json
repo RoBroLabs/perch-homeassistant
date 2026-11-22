@@ -1,0 +1,7 @@
+{
+  "id": 12,
+  "type": "perch/notify",
+  "kind": "request_ready",
+  "title_id": "plex:12345",
+  "title_name": "The Wild Robot"
+}

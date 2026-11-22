@@ -222,5 +222,29 @@
   {
     "file": "events/events.json",
     "def": "EventsEventFrame"
+  },
+  {
+    "file": "commands/notify.request.json",
+    "def": "NotifyCommandFrame"
+  },
+  {
+    "file": "commands/notify.request.no_name.json",
+    "def": "NotifyCommandFrame"
+  },
+  {
+    "file": "commands/notify.result.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.already_sent.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.not_set_up.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.rate_limited.json",
+    "def": "NotifyResultFrame"
   }
 ]

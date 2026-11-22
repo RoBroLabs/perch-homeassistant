@@ -65,7 +65,7 @@ Error codes: `not_allowed`, `not_found`, `invalid_format`, `refused_for_role`, `
 
 | Command | Request fields | Result |
 |---|---|---|
-| `perch/manifest` | none | `{tv_id, tv_name, room: {id, name} or null, rooms: [{id, name}] (includes the TV's room; `room` is null until the admin picks the TV's room in Home Assistant, and then `rooms` is empty), lights: [{id, name, room_id, dimmable}], cameras: [{id, name, room_id or null}], doorbell: {camera_id or null} or null, scenes: [{id, name, purpose: "movie_night" / "paused" / null}], let_in_available}` |
+| `perch/manifest` | none | `{tv_id, tv_name, room: {id, name} or null, rooms: [{id, name}] (includes the TV's room; `room` is null until the admin picks the TV's room in Home Assistant, and then `rooms` is empty), lights: [{id, name, room_id, dimmable}], cameras: [{id, name, room_id or null}], doorbell: {camera_id or null} or null, scenes: [{id, name, purpose: "movie_night" / "paused" / null}], let_in_available, notify_available?}` |
 | `perch/states` | none | `{lights: [{id, on, brightness 0..100 or null, available}]}` |
 | `perch/subscribe` | `{topics}`: 1 to 4 unique of `doorbell`, `events`, `states`, `manifest` | `{topics}` |
 | `perch/camera` | `{camera_id, kind: "snapshot" / "stream"}` | `{url, expires_at}` |
@@ -76,6 +76,9 @@ Error codes: `not_allowed`, `not_found`, `invalid_format`, `refused_for_role`, `
 | `perch/skip_tonight` | `{until}` | `{}` |
 | `perch/unpair` | none | `{}`, then `revoked` and close 4003 |
 | `perch/let_in` | `{sealed_pin}` | `{opened, refusal: null / "no_ring" / "wrong_pin" / "locked_out" / "not_allowed"}` |
+| `perch/notify` | `{kind: "request_ready", title_id, title_name?}` | `{sent, refusal: null / "not_set_up" / "already_sent" / "rate_limited"}` |
+
+`perch/notify` (companion 0.2.0) asks the companion to tell the household's phones something. The TV picks a fixed `kind` and never names a service or supplies wording. `request_ready`: a title the household asked for is ready to watch. The companion sends "Your request is ready to watch", or "<title_name> is ready to watch" only when the admin allows names (they show on a locked phone). `title_id` (1 to 128 of `A-Z a-z 0-9 . _ : / -`) is used only to tell each title once, across all TVs and restarts; the companion keeps only its hash. `title_name` is 1 to 200 characters; control and markup characters are dropped and at most 100 are kept. Refusals: `not_set_up` (no phone picked or the switch is off), `already_sent`, `rate_limited` (10 an hour per TV, 30 an hour in all). If no phone takes the message within 10 seconds the reply is error `unavailable`, and the title may be tried again. `notify_available` in the manifest is true when a request notice would be sent; a companion before 0.2.0 leaves it out, which means false.
 
 `EventItem {id, camera_id, label, started_at, ended_at or null, snapshot_url, clip_url or null, expires_at}`.
 

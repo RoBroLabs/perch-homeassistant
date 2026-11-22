@@ -42,6 +42,8 @@ RESULT_DEFS = {
     "perch/subscribe": "SubscribeResultFrame",
     "perch/light": "LightResultFrame",
     "perch/scene": "SceneResultFrame",
+    "perch/notify": "NotifyResultFrame",
+    "perch/let_in": "LetInResultFrame",
 }
 
 
