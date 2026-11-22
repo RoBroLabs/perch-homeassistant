@@ -256,6 +256,11 @@ class LetIn:
             self.state.failures = 0
             await self._store.async_save(self.state.as_dict())
         script = self.entry.options.get(CONF_LET_IN_SCRIPT)
+        if self.hass.states.get(script) is None:
+            _LOGGER.warning("Perch's let-in script is missing")
+            return "failed"
+        # `script.turn_on` returns once the script has started: `opened` means the
+        # script started. The companion cannot see the lock itself.
         try:
             async with asyncio.timeout(LET_IN_SCRIPT_TIMEOUT):
                 await self.hass.services.async_call(
