@@ -64,7 +64,8 @@
           "doorbell": "Doorbell trigger",
           "scenes": "Scenes",
           "restore_timeout": "Put the lights back after (minutes)",
-          "advanced": "Advanced"
+          "advanced": "Advanced",
+          "phone": "Tell my phone"
         },
         "data_description": {
           "doorbell": "A binary sensor or event that fires when someone rings.",
@@ -82,6 +83,20 @@
             "data_description": {
               "pairing_attempts": "Wrong codes allowed before pairing stops. From 3 to 10.",
               "allow_cloud": "Lets a TV reach Perch through Home Assistant Cloud when away from home. Pairing a TV always needs your home network, even with this switched on."
+            }
+          },
+          "phone": {
+            "name": "Tell my phone",
+            "description": "Perch can tell your phone when a request is ready to watch. Let-in lockout notices go to the same phones.",
+            "data": {
+              "notify_services": "Phones to tell",
+              "notify_request_ready": "Tell my phone when a request is ready",
+              "notify_include_title": "Include the title's name"
+            },
+            "data_description": {
+              "notify_services": "Pick one or more notify services. The TV never chooses where a message goes.",
+              "notify_request_ready": "Off until you switch it on. Each title is told once.",
+              "notify_include_title": "Off by default, because the name shows on a locked phone. Without it the message is \"Your request is ready to watch\"."
             }
           }
         }
@@ -102,7 +117,9 @@
       }
     },
     "error": {
-      "same_scene": "Movie night and Paused need different scenes."
+      "same_scene": "Movie night and Paused need different scenes.",
+      "notify_unknown": "One of the phones you picked is no longer in Home Assistant.",
+      "notify_needs_service": "Pick at least one phone to tell."
     }
   }
 }

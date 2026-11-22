@@ -51,6 +51,9 @@ async def test_options_round_trip(hass):
         "restore_timeout": 20,
         "pairing_attempts": 7,
         "allow_cloud": True,
+        "notify_services": [],
+        "notify_request_ready": False,
+        "notify_include_title": False,
     }
     assert type(entry.options["restore_timeout"]) is int
     assert type(entry.options["pairing_attempts"]) is int

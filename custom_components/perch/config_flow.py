@@ -49,7 +49,11 @@ from .const import (
     CONF_DOORBELL,
     CONF_DOORBELL_CAMERA,
     CONF_MOVIE_SCENE,
+    CONF_NOTIFY_INCLUDE_TITLE,
+    CONF_NOTIFY_REQUEST_READY,
+    CONF_NOTIFY_SERVICES,
     CONF_PAUSED_SCENE,
+    CONF_PHONE,
     CONF_PAIRING_ATTEMPTS,
     CONF_PUBLIC_KEY,
     CONF_RESTORE_TIMEOUT,
@@ -67,6 +71,7 @@ from .const import (
     MIN_RESTORE_TIMEOUT,
     SUBENTRY_TV,
 )
+from .notify import registered_services
 from .pairing import CodeResult
 from .runtime import get_runtime
 from .words import async_get_words
@@ -137,8 +142,10 @@ class PerchOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         current = self.config_entry.options
+        errors: dict[str, str] = {}
         if user_input is not None:
             advanced = user_input.get(CONF_ADVANCED, {})
+            phone = user_input.get(CONF_PHONE, {})
             options = {
                 CONF_CAMERAS: user_input.get(CONF_CAMERAS, []),
                 CONF_SCENES: user_input.get(CONF_SCENES, []),
@@ -154,8 +161,10 @@ class PerchOptionsFlow(OptionsFlow):
             }
             if user_input.get(CONF_DOORBELL):
                 options[CONF_DOORBELL] = user_input[CONF_DOORBELL]
-            self._options = options
-            return await self.async_step_details()
+            errors = self._phone_options(phone, options)
+            if not errors:
+                self._options = options
+                return await self.async_step_details()
 
         def suggested(key: str):
             value = current.get(key)
@@ -197,9 +206,49 @@ class PerchOptionsFlow(OptionsFlow):
                     ),
                     {"collapsed": True},
                 ),
+                vol.Required(CONF_PHONE, default={}): section(
+                    self._phone_schema(current), {"collapsed": True}
+                ),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+        return self.async_show_form(step_id="init", data_schema=schema, errors=errors)
+
+    def _phone_schema(self, current: Any) -> vol.Schema:
+        services = registered_services(self.hass)
+        picked = [s for s in current.get(CONF_NOTIFY_SERVICES, []) if s in services]
+        return vol.Schema(
+            {
+                vol.Required(CONF_NOTIFY_SERVICES, default=picked): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[SelectOptionDict(value=s, label=s) for s in services],
+                        multiple=True,
+                    )
+                ),
+                vol.Required(
+                    CONF_NOTIFY_REQUEST_READY,
+                    default=bool(current.get(CONF_NOTIFY_REQUEST_READY, False)),
+                ): BooleanSelector(),
+                vol.Required(
+                    CONF_NOTIFY_INCLUDE_TITLE,
+                    default=bool(current.get(CONF_NOTIFY_INCLUDE_TITLE, False)),
+                ): BooleanSelector(),
+            }
+        )
+
+    def _phone_options(self, phone: dict[str, Any], options: dict[str, Any]) -> dict[str, str]:
+        """Copy the phone section into `options`; errors if it does not hold up."""
+        services = list(dict.fromkeys(phone.get(CONF_NOTIFY_SERVICES) or []))
+        if any(s not in registered_services(self.hass) for s in services):
+            return {"base": "notify_unknown"}
+        ready = bool(phone.get(CONF_NOTIFY_REQUEST_READY, False))
+        if ready and not services:
+            return {"base": "notify_needs_service"}
+        options[CONF_NOTIFY_SERVICES] = services
+        options[CONF_NOTIFY_REQUEST_READY] = ready
+        options[CONF_NOTIFY_INCLUDE_TITLE] = bool(
+            phone.get(CONF_NOTIFY_INCLUDE_TITLE, False)
+        )
+        return {}
 
     def _choice(self, entity_ids: list[str]) -> SelectSelector:
         options = []
