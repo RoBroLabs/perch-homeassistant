@@ -46,12 +46,15 @@ Start on the TV first. A pairing lasts 5 minutes and works only on your home net
 - Dim the lights in the TV's room while a film plays, and put them back afterwards.
 - Show your doorbell camera on the TV when someone rings.
 - Give each TV its own scope, so one TV can see less than another.
+- Tell your phone when a request is ready to watch, if you switch it on.
+- Let someone in after a ring by running a script you choose, with a let-in PIN, on TVs you allow. Off by default.
 
 What Perch never does:
 
 - Use anything outside a TV's scope.
 - Store a Home Assistant token on the TV.
 - Pair from outside your home network.
+- Open a door or touch a lock. It can only ask to run your let-in script, which Home Assistant runs only after a ring and with the right PIN.
 
 ## Need more?
 

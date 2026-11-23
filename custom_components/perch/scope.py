@@ -15,10 +15,12 @@ from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from .runtime import get_runtime
 from .const import (
     CONF_CAMERAS,
     CONF_DOORBELL,
     CONF_DOORBELL_CAMERA,
+    CONF_LET_IN_ALLOWED,
     CONF_MOVIE_SCENE,
     CONF_PAUSED_SCENE,
     CONF_ROOM_ID,
@@ -44,6 +46,7 @@ class TvScope:
     doorbell_camera: str | None = None
     movie_scene: str | None = None
     paused_scene: str | None = None
+    let_in_allowed: bool = False
 
 
 def _area_of(entity_id: str, ent_reg: er.EntityRegistry, dev_reg: dr.DeviceRegistry):
@@ -119,6 +122,7 @@ def build_scope(hass: HomeAssistant, entry: ConfigEntry, tv_id: str) -> TvScope 
         else None,
         movie_scene=movie if movie in scenes else None,
         paused_scene=paused if paused in scenes and paused != movie else None,
+        let_in_allowed=subentry.data.get(CONF_LET_IN_ALLOWED) is True,
     )
 
 
@@ -193,8 +197,21 @@ def build_manifest(
         "cameras": cameras,
         "doorbell": {"camera_id": scope.doorbell_camera} if scope.doorbell else None,
         "scenes": scenes,
-        "let_in_available": False,
+        "let_in_available": _let_in_available(hass, scope),
+        "notify_available": _notify_available(hass),
     }
+
+
+def _let_in_available(hass: HomeAssistant, scope: TvScope) -> bool:
+    runtime = get_runtime(hass)
+    return bool(
+        runtime and runtime.let_in and runtime.let_in.available_for(scope.let_in_allowed)
+    )
+
+
+def _notify_available(hass: HomeAssistant) -> bool:
+    runtime = get_runtime(hass)
+    return bool(runtime and runtime.notifier and runtime.notifier.request_ready_available())
 
 
 def role_may_control_lights(role: str) -> bool:

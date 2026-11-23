@@ -146,6 +146,7 @@ async def test_manifest_matches_selection_and_schema(hass):
             key=lambda x: x["id"],
         ),
         "let_in_available": False,
+        "notify_available": False,
     }
     assert is_allowed(scope, cam) and is_allowed(scope, bell) and is_allowed(scope, mn)
     assert not is_allowed(scope, "camera.unselected")

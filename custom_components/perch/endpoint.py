@@ -34,6 +34,7 @@ from .const import (
     SUBENTRY_TV,
 )
 from .crypto import open_auth_proof
+from .let_in import Session
 from .runtime import PerchRuntime, get_runtime
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,6 +126,12 @@ async def handle_ws(
         await ws.close(code=CLOSE_REVOKED)
         return ws
 
+    pub, stored = _lookup(runtime, tv_id)
+    session = (
+        Session(server, challenge, pub, stored)
+        if pub is not None and isinstance(stored, str)
+        else None
+    )
     runtime.sockets.setdefault(tv_id, set()).add(ws)
     if runtime.moods is not None:
         runtime.moods.tv_connected(tv_id)
@@ -146,7 +153,7 @@ async def handle_ws(
                 continue
             if not isinstance(frame, dict):
                 continue
-            if not await _dispatch(hass, request, runtime, ws, tv_id, frame):
+            if not await _dispatch(hass, request, runtime, ws, tv_id, frame, session):
                 break
     except (ConnectionError, RuntimeError):
         pass  # the TV went away mid-send
@@ -182,6 +189,7 @@ async def _dispatch(
     ws: web.WebSocketResponse,
     tv_id: str,
     frame: dict[str, Any],
+    session: Session | None = None,
 ) -> bool:
     """Answer one frame. False means the connection has been closed."""
     if get_runtime(hass) is not runtime:
@@ -203,7 +211,7 @@ async def _dispatch(
         await ws.send_json(reply)
         return True
     try:
-        result = await run_command(hass, runtime.entry, tv_id, frame, ws)
+        result = await run_command(hass, runtime.entry, tv_id, frame, ws, session)
     except CommandError as err:
         reply.update(success=False, error={"code": err.code, "message": err.message})
     except Revoked:

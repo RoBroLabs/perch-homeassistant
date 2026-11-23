@@ -37,7 +37,11 @@
           "description": "Choose the room this TV is in, and any other rooms it may control. Its own room is always included.",
           "data": {
             "room_id": "This TV's room",
-            "rooms": "Other rooms it may control"
+            "rooms": "Other rooms it may control",
+            "let_in_allowed": "This TV may let people in"
+          },
+          "data_description": {
+            "let_in_allowed": "Off by default. The let-in PIN and a recent ring are still needed."
           }
         }
       },
@@ -64,7 +68,9 @@
           "doorbell": "Doorbell trigger",
           "scenes": "Scenes",
           "restore_timeout": "Put the lights back after (minutes)",
-          "advanced": "Advanced"
+          "advanced": "Advanced",
+          "phone": "Tell my phone",
+          "let_in": "Let someone in"
         },
         "data_description": {
           "doorbell": "A binary sensor or event that fires when someone rings.",
@@ -82,6 +88,36 @@
             "data_description": {
               "pairing_attempts": "Wrong codes allowed before pairing stops. From 3 to 10.",
               "allow_cloud": "Lets a TV reach Perch through Home Assistant Cloud when away from home. Pairing a TV always needs your home network, even with this switched on."
+            }
+          },
+          "phone": {
+            "name": "Tell my phone",
+            "description": "Perch can tell your phone when a request is ready to watch. Let-in lockout notices go to the same phones.",
+            "data": {
+              "notify_services": "Phones to tell",
+              "notify_request_ready": "Tell my phone when a request is ready",
+              "notify_include_title": "Include the title's name"
+            },
+            "data_description": {
+              "notify_services": "Pick one or more notify services. The TV never chooses where a message goes.",
+              "notify_request_ready": "Off until you switch it on. Each title is told once.",
+              "notify_include_title": "Off by default, because the name shows on a locked phone. Without it the message is \"Your request is ready to watch\"."
+            }
+          },
+          "let_in": {
+            "name": "Let someone in",
+            "description": "When the doorbell rings, an allowed TV can run a script you choose, for example to unlock the door and lock it again. Perch never uses a lock itself. It works only within 2 minutes of a ring, only with the let-in PIN, and only on TVs you allow (open a TV and choose Reconfigure). Three wrong PINs lock it for 15 minutes, then 1 hour, then switch it off until you switch it on here again.",
+            "data": {
+              "let_in_enabled": "Let someone in from Perch",
+              "let_in_script": "Script to run",
+              "let_in_pin": "New let-in PIN",
+              "let_in_pin_confirm": "New let-in PIN again"
+            },
+            "data_description": {
+              "let_in_enabled": "Off by default. Switching it on again after a lockout clears the lockout.",
+              "let_in_script": "Perch runs this script and nothing else.",
+              "let_in_pin": "6 to 12 digits. Use a PIN of its own, not one you use anywhere else. Leave empty to keep the current PIN. Home Assistant keeps only a scrambled copy.",
+              "let_in_pin_confirm": "Type the new PIN again."
             }
           }
         }
@@ -102,7 +138,14 @@
       }
     },
     "error": {
-      "same_scene": "Movie night and Paused need different scenes."
+      "same_scene": "Movie night and Paused need different scenes.",
+      "notify_unknown": "One of the phones you picked is no longer in Home Assistant.",
+      "notify_needs_service": "Pick at least one phone to tell.",
+      "let_in_pin_mismatch": "The two PINs do not match.",
+      "let_in_pin_format": "The let-in PIN must be 6 to 12 digits.",
+      "let_in_needs_script": "Pick the script to run before switching let-in on.",
+      "let_in_needs_pin": "Set a let-in PIN before switching let-in on.",
+      "let_in_needs_doorbell": "Pick a doorbell trigger before switching let-in on. Let-in only works after a ring."
     }
   }
 }

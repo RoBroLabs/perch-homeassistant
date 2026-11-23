@@ -14,7 +14,9 @@ from .pairing import PairingManager, RateLimiter
 
 if TYPE_CHECKING:
     from .hub import PushHub
+    from .let_in import LetIn
     from .moods import MoodEngine
+    from .notify import PhoneNotifier
     from aiohttp import web
 
 # Throttle numbers. The README's rate-limit table lists them; keep the two in step.
@@ -64,6 +66,8 @@ class PerchRuntime:
     origins: dict[web.WebSocketResponse, Origin] = field(default_factory=dict)
     moods: MoodEngine | None = None
     hub: PushHub | None = None
+    notifier: PhoneNotifier | None = None
+    let_in: LetIn | None = None
 
 
 @callback

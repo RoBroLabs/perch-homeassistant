@@ -3,6 +3,15 @@
 All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+Proposed as 0.2.0. Needs Perch app support (WP-55 and WP-66) to be useful.
+
+### Added
+- Let someone in: after a ring, an allowed TV can run a script the admin chose, with a let-in PIN of its own (6 to 12 digits, kept only as a salted scrypt hash). Checks, in order: let-in on, TV allowed (none by default), no lockout, a ring in the last 2 minutes not used yet, the PIN. One ring lets someone in once; a restart forgets the ring. Three wrong PINs lock it for 15 minutes, then 1 hour, then switch it off until the admin switches it on again; lockouts survive a restart and each one tells the admin's phones. Every request is a logbook entry naming the TV. The TV seals the PIN to the connection, so it is safe over plain http.
+- Tell my phone: the TV can ask Perch to tell the household's phones that a request is ready to watch. The admin picks the phones; the wording is fixed; the title's name is included only if the admin allows it. Once per title, 10 an hour per TV and 30 an hour in all.
+- Protocol: `perch/let_in` is no longer reserved, with a new `disabled` refusal and the seal defined in `protocol/README.md` and `protocol/vectors/let_in.json`. New `perch/notify` command and `notify_available` in the manifest. A 0.1.x app, which never sends these, keeps working.
+
 ## [0.1.2] - 2026-11-17
 
 ### Removed

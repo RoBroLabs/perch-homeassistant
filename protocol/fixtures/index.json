@@ -222,5 +222,53 @@
   {
     "file": "events/events.json",
     "def": "EventsEventFrame"
+  },
+  {
+    "file": "commands/notify.request.json",
+    "def": "NotifyCommandFrame"
+  },
+  {
+    "file": "commands/notify.request.no_name.json",
+    "def": "NotifyCommandFrame"
+  },
+  {
+    "file": "commands/notify.result.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.already_sent.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.not_set_up.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/notify.result.rate_limited.json",
+    "def": "NotifyResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.disabled.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.not_allowed.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.locked_out.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.no_ring.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/let_in.result.wrong_pin.json",
+    "def": "LetInResultFrame"
+  },
+  {
+    "file": "commands/error.invalid_format.json",
+    "def": "ErrorResultFrame"
   }
 ]

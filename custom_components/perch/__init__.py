@@ -12,6 +12,8 @@ from .const import CONF_ALLOW_CLOUD, CONF_ROOM_ID, CONF_TV_ID, DOMAIN, SUBENTRY_
 from .access import Origin
 from .hub import PushHub
 from .moods import MoodEngine
+from .let_in import LetIn
+from .notify import PhoneNotifier
 from .runtime import PerchRuntime, get_runtime
 from .endpoint import close_all_sockets, close_cloud_sockets, revoke_sockets
 from .views import PairStatusView, PairView, WsView
@@ -30,6 +32,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     runtime = PerchRuntime(entry=entry)
     runtime.moods = MoodEngine(hass, entry)
     await runtime.moods.async_load()
+    runtime.notifier = PhoneNotifier(hass, entry)
+    await runtime.notifier.async_load()
+    runtime.let_in = LetIn(hass, entry)
+    await runtime.let_in.async_load()
     runtime.hub = PushHub(hass, entry)
     runtime.hub.async_start()
     hass.data[DOMAIN] = runtime
@@ -46,6 +52,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data.pop(DOMAIN, None)
         if runtime.hub is not None:
             runtime.hub.async_stop()
+        if runtime.let_in is not None:
+            runtime.let_in.async_unload()
         await close_all_sockets(runtime)
         if runtime.moods is not None:
             await runtime.moods.async_unload()

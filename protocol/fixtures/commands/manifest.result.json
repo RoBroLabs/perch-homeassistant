@@ -65,6 +65,7 @@
         "purpose": null
       }
     ],
-    "let_in_available": false
+    "let_in_available": false,
+    "notify_available": true
   }
 }

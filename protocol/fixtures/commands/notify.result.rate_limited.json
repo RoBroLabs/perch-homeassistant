@@ -1,0 +1,9 @@
+{
+  "id": 12,
+  "type": "result",
+  "success": true,
+  "result": {
+    "sent": false,
+    "refusal": "rate_limited"
+  }
+}
