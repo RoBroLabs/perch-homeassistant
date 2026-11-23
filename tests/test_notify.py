@@ -175,6 +175,7 @@ def test_clean_title_name_bounds():
     assert clean_title_name("a" * 201) is None
     assert clean_title_name("  Up\t\tHigh  ") == "Up High"
     assert clean_title_name("`*_#|~\\") is None
+    assert clean_title_name("Up, see https://evil.example/a or WWW.evil.example") == "Up, see or"
 
 
 async def _entry(hass):

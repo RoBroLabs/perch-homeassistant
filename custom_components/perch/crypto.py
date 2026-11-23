@@ -228,23 +228,29 @@ def verify_pin(pin: str | None, stored: str | None) -> bool:
 
 def let_in_key(
     shared: bytes,
+    static_shared: bytes,
     stored_hash: bytes,
     challenge: bytes,
     eph_pub: bytes,
     server_key: bytes,
     tv_pub: bytes,
 ) -> bytes:
-    """HKDF(ikm=shared||hash, salt=challenge, info=label||ephPub||server_key||tvPub)."""
+    """HKDF(ikm=shared||static_shared||hash, salt=challenge,
+    info=label||ephPub||server_key||tvPub). `shared` is X25519(eph, server_key);
+    `static_shared` is X25519(tv static, server_key), so only the TV's own key
+    pair and credential together can seal."""
     return HKDF(
         algorithm=hashes.SHA256(),
         length=32,
         salt=challenge,
         info=LET_IN_LABEL + eph_pub + server_key + tv_pub,
-    ).derive(shared + stored_hash)
+    ).derive(shared + static_shared + stored_hash)
 
 
 def let_in_aad(challenge: bytes, command_id: int) -> bytes:
-    """label || challenge || uint64_be(command id)."""
+    """label || challenge || uint64_be(command id). The id must be 1 to 2^63-1."""
+    if not 0 < command_id < 2**63:
+        raise ValueError("command id")
     return LET_IN_LABEL + challenge + command_id.to_bytes(8, "big")
 
 
@@ -253,7 +259,7 @@ def seal_pin(
     server_key: bytes,
     credential: bytes,
     challenge: bytes,
-    tv_pub: bytes,
+    tv_private: X25519PrivateKey,
     command_id: int,
     *,
     ephemeral: X25519PrivateKey | None = None,
@@ -264,9 +270,18 @@ def seal_pin(
         raise ValueError("pin")
     eph = ephemeral or X25519PrivateKey.generate()
     eph_pub = eph.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-    shared = eph.exchange(X25519PublicKey.from_public_bytes(server_key))
+    server = X25519PublicKey.from_public_bytes(server_key)
+    shared = eph.exchange(server)
+    static_shared = tv_private.exchange(server)
+    tv_pub = tv_private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
     key = let_in_key(
-        shared, hashlib.sha256(credential).digest(), challenge, eph_pub, server_key, tv_pub
+        shared,
+        static_shared,
+        hashlib.sha256(credential).digest(),
+        challenge,
+        eph_pub,
+        server_key,
+        tv_pub,
     )
     plain = pin.encode().ljust(LET_IN_PLAIN_LEN, b"\0")
     n = aead_nonce or os.urandom(12)
@@ -300,7 +315,10 @@ def open_sealed_pin(
     server_pub = server_private.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
     try:
         shared = server_private.exchange(X25519PublicKey.from_public_bytes(eph_pub))
-        key = let_in_key(shared, hash_raw, challenge, eph_pub, server_pub, tv_pub)
+        static_shared = server_private.exchange(X25519PublicKey.from_public_bytes(tv_pub))
+        key = let_in_key(
+            shared, static_shared, hash_raw, challenge, eph_pub, server_pub, tv_pub
+        )
         plain = ChaCha20Poly1305(key).decrypt(
             nonce, body, let_in_aad(challenge, command_id)
         )

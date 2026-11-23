@@ -145,6 +145,7 @@ class PerchOptionsFlow(OptionsFlow):
 
     _options: dict[str, Any]
     _reset_let_in: bool = False
+    _let_in_shown: bool | None = None
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -258,6 +259,8 @@ class PerchOptionsFlow(OptionsFlow):
     def _let_in_schema(self, current: Any) -> vol.Schema:
         script = current.get(CONF_LET_IN_SCRIPT)
         secret = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+        # What the form shows now: only switching it from off to on is a re-enable.
+        self._let_in_shown = self._let_in_on()
         return vol.Schema(
             {
                 vol.Required(CONF_LET_IN_ENABLED, default=self._let_in_on()): BooleanSelector(),
@@ -301,7 +304,8 @@ class PerchOptionsFlow(OptionsFlow):
             options[CONF_LET_IN_PIN_HASH] = pin_hash
         # Turning it on while it shows off (switched off, or turned off by a
         # lockout) is the admin's re-enable: every lockout is forgotten.
-        self._reset_let_in = enabled and not self._let_in_on()
+        shown = self._let_in_shown if self._let_in_shown is not None else self._let_in_on()
+        self._reset_let_in = enabled and not shown
         return {}
 
     async def _finish(self, data: dict[str, Any]) -> ConfigFlowResult:

@@ -41,9 +41,10 @@ eph_pub = eph.public_key().public_bytes_raw()
 challenge, credential = h(inputs["challenge"]), h(inputs["credential"])
 cid = inputs["command_id"]
 shared = eph.exchange(server.public_key())
+static_shared = tv.exchange(server.public_key())
 hash_raw = hashlib.sha256(credential).digest()
 sealed = crypto.seal_pin(
-    inputs["pin"], server_pub, credential, challenge, tv_pub, cid,
+    inputs["pin"], server_pub, credential, challenge, tv, cid,
     ephemeral=eph, aead_nonce=h(inputs["let_in_aead_nonce"]),
 )
 outputs = {
@@ -51,16 +52,18 @@ outputs = {
     "server_key": server_pub.hex(),
     "let_in_ephemeral_public_key": eph_pub.hex(),
     "shared": shared.hex(),
+    "static_shared": static_shared.hex(),
     "credential_hash": hash_raw.hex(),
-    "ikm": (shared + hash_raw).hex(),
+    "ikm": (shared + static_shared + hash_raw).hex(),
     "info": (b"perch-letin-v1" + eph_pub + server_pub + tv_pub).hex(),
-    "key": crypto.let_in_key(shared, hash_raw, challenge, eph_pub, server_pub, tv_pub).hex(),
+    "key": crypto.let_in_key(shared, static_shared, hash_raw, challenge, eph_pub, server_pub, tv_pub).hex(),
     "aad": crypto.let_in_aad(challenge, cid).hex(),
     "plaintext": inputs["pin"].encode().ljust(16, b"\0").hex(),
     "sealed_pin": sealed.hex(),
     "sealed_pin_base64": base64.b64encode(sealed).decode(),
     "open_with_command_id_12_expect": "open_fails",
     "open_with_wrong_stored_hash_expect": "open_fails",
+    "open_with_another_tv_public_key_expect": "open_fails",
 }
 assert crypto.open_sealed_pin(server, hash_raw.hex(), challenge, tv_pub, cid, sealed) == inputs["pin"]
 assert crypto.open_sealed_pin(server, hash_raw.hex(), challenge, tv_pub, 12, sealed) is None

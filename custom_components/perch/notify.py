@@ -43,6 +43,7 @@ TITLE_NAME_MAX = 100  # characters kept after cleaning
 TITLE_NAME_RAW_MAX = 200  # longest name accepted on the wire
 _MARKUP = str.maketrans("", "", "[]()*_`<>#!|~\\")
 _HOUR = 3600.0
+_LINK = re.compile(r"\S*(?:://|www\.)\S*", re.IGNORECASE)
 
 
 def registered_services(hass: HomeAssistant) -> list[str]:
@@ -67,7 +68,7 @@ def clean_title_name(raw: Any) -> str | None:
         for ch in raw
         if ch.isspace() or not unicodedata.category(ch).startswith("C")
     )
-    text = " ".join(kept.translate(_MARKUP).split())
+    text = " ".join(_LINK.sub(" ", kept).translate(_MARKUP).split())
     return text[:TITLE_NAME_MAX].strip() or None
 
 

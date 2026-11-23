@@ -29,6 +29,8 @@ import binascii
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import logging
+import math
+import re
 from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
@@ -60,6 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 EVENT_LOGBOOK_ENTRY = "logbook_entry"
 NOTICE_ID = "perch_let_in_lockout"
 _MARKUP = str.maketrans("", "", "[]()*_`<>#!|\r\n")
+_LINK = re.compile(r"\S*(?:://|www\.)\S*", re.IGNORECASE)
 
 _WHY = {
     None: "let someone in",
@@ -101,7 +104,7 @@ class _State:
 
 
 def _plain(name: str) -> str:
-    return name.translate(_MARKUP).strip() or "A TV"
+    return " ".join(_LINK.sub(" ", name.translate(_MARKUP)).split()) or "A TV"
 
 
 @dataclass
@@ -124,7 +127,9 @@ class LetIn:
         self.state = _State(
             failures=int(data.get("failures") or 0),
             level=int(data.get("level") or 0),
-            locked_until=float(until) if isinstance(until, (int, float)) else None,
+            locked_until=float(until)
+            if isinstance(until, (int, float)) and math.isfinite(until)
+            else None,
             disabled=bool(data.get("disabled", False)),
         )
         self._arm_unlock_push()
@@ -195,10 +200,13 @@ class LetIn:
         for an error frame."""
         async with self._lock:
             context = Context()
-            outcome = await self._decide(
-                tv_allowed, session, command_id, sealed_pin, context
-            )
-            self._log(tv_name, outcome, context)
+            outcome: str | None = "failed"
+            try:
+                outcome = await self._decide(
+                    tv_allowed, session, command_id, sealed_pin, context
+                )
+            finally:
+                self._log(tv_name, outcome, context)
             if outcome == "invalid_format":
                 raise LetInError("invalid_format", "sealed_pin does not open")
             if outcome == "failed":
@@ -218,9 +226,24 @@ class LetIn:
         sealed_pin: Any,
         context: Context,
     ) -> str | None:
+        from .runtime import get_runtime  # noqa: PLC0415
+
+        runtime = get_runtime(self.hass)
+        if runtime is None or runtime.let_in is not self:
+            return "failed"  # reloaded while this request waited
         sealed = _b64(sealed_pin)
-        if sealed is None or len(sealed) != LET_IN_SEALED_LEN or session is None:
+        if (
+            sealed is None
+            or len(sealed) != LET_IN_SEALED_LEN
+            or session is None
+            or not 0 < command_id < 2**63
+        ):
             return "invalid_format"
+        # Each command id is used at most once per connection, in order, before
+        # any other check: a refused frame can never be sent again later.
+        if command_id <= session.last_let_in_id:
+            return "invalid_format"
+        session.last_let_in_id = command_id
         if not self.set_up() or self.state.disabled:
             return "disabled"
         if not tv_allowed:
@@ -230,10 +253,6 @@ class LetIn:
         ring = self._fresh_ring()
         if ring is None:
             return "no_ring"
-        # Each command id opens at most one seal on this connection, in order.
-        if command_id <= session.last_let_in_id:
-            return "invalid_format"
-        session.last_let_in_id = command_id
         pin = crypto.open_sealed_pin(
             session.server,
             session.stored_hash,
@@ -248,6 +267,8 @@ class LetIn:
             crypto.verify_pin, pin, self.entry.options.get(CONF_LET_IN_PIN_HASH)
         )
         del pin
+        if get_runtime(self.hass) is not runtime:
+            return "failed"  # reloaded during the check: the new state decides
         if not good:
             return await self._wrong_pin()
         # Use up the ring that was checked, then run the script.

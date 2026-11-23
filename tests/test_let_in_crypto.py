@@ -39,13 +39,17 @@ def test_seal_reproduces_vector_step_by_step():
     shared = eph.exchange(server.public_key())
     assert shared.hex() == OUT["shared"]
     assert server.exchange(eph.public_key()) == shared
+    static = tv.exchange(server.public_key())
+    assert static.hex() == OUT["static_shared"]
+    assert static == server.exchange(tv.public_key())
+    assert (shared + static + h(OUT["credential_hash"])).hex() == OUT["ikm"]
     key = crypto.let_in_key(
-        shared, h(OUT["credential_hash"]), h(IN["challenge"]), eph_pub, server_pub, tv_pub
+        shared, static, h(OUT["credential_hash"]), h(IN["challenge"]), eph_pub, server_pub, tv_pub
     )
     assert key.hex() == OUT["key"]
     assert crypto.let_in_aad(h(IN["challenge"]), IN["command_id"]).hex() == OUT["aad"]
     sealed = crypto.seal_pin(
-        IN["pin"], server_pub, h(IN["credential"]), h(IN["challenge"]), tv_pub,
+        IN["pin"], server_pub, h(IN["credential"]), h(IN["challenge"]), tv,
         IN["command_id"], ephemeral=eph, aead_nonce=h(IN["let_in_aead_nonce"]),
     )
     assert sealed.hex() == OUT["sealed_pin"]
@@ -67,6 +71,17 @@ def _open(sealed=None, cid=None, stored=None, challenge=None, tv_pub=None):
 
 def test_open_vector():
     assert _open() == IN["pin"]
+
+
+def test_a_stolen_credential_hash_alone_cannot_seal():
+    # Someone with the stored hash (a backup) but not the TV's private key.
+    tv, server, eph = _keys()
+    impostor = X25519PrivateKey.generate()
+    sealed = crypto.seal_pin(
+        IN["pin"], server.public_key().public_bytes_raw(), h(IN["credential"]),
+        h(IN["challenge"]), impostor, IN["command_id"],
+    )
+    assert _open(sealed=sealed) is None
 
 
 def test_open_fails_for_another_command_connection_tv_or_credential():
@@ -104,7 +119,13 @@ def test_seal_refuses_a_bad_pin():
     tv, server, _ = _keys()
     with pytest.raises(ValueError):
         crypto.seal_pin("12", server.public_key().public_bytes_raw(), b"c" * 32, b"x" * 32,
-                        tv.public_key().public_bytes_raw(), 1)
+                        tv, 1)
+
+
+@pytest.mark.parametrize("cid", [0, 2**63])
+def test_aad_refuses_ids_outside_the_range(cid):
+    with pytest.raises(ValueError):
+        crypto.let_in_aad(b"x" * 32, cid)
 
 
 def test_pin_hash_is_salted_slow_and_checks():

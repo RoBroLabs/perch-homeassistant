@@ -9,7 +9,7 @@ import logging
 
 import pytest
 
-from homeassistant.core import ServiceCall
+from homeassistant.core import ServiceCall, callback
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
@@ -72,7 +72,9 @@ async def house(hass, world):
     )
     await hass.async_block_till_done()
     logbook: list[dict] = []
-    hass.bus.async_listen("logbook_entry", lambda e: logbook.append(dict(e.data)))
+    hass.bus.async_listen(
+        "logbook_entry", callback(lambda e: logbook.append(dict(e.data)))
+    )
     world.door, world.phone, world.logbook = door, phone, logbook
     return world
 
@@ -90,7 +92,7 @@ class Link:
         return base64.b64encode(
             crypto.seal_pin(
                 pin, self.server_key, credential or self.tv.credential,
-                self.challenge, self.tv.pub, cid,
+                self.challenge, self.tv.priv, cid,
             )
         ).decode()
 
@@ -363,6 +365,51 @@ async def test_a_frame_cannot_be_replayed_on_its_connection(hass, client, house)
     await tv.ws.send_json({"id": 1, "type": "perch/let_in", "sealed_pin": sealed})
     assert (await recv(tv.ws))["error"]["code"] == "invalid_format"
     assert lock(hass).failures == 1
+
+
+async def test_a_refused_frame_cannot_be_sent_again_after_a_ring(hass, client, house):
+    tv = await link(client, house.tv_a)
+    sealed = tv.seal(PIN, 1)
+    await tv.ws.send_json({"id": 1, "type": "perch/let_in", "sealed_pin": sealed})
+    assert (await recv(tv.ws))["result"]["refusal"] == "no_ring"
+    await ring(hass)
+    await tv.ws.send_json({"id": 1, "type": "perch/let_in", "sealed_pin": sealed})
+    assert (await recv(tv.ws))["error"]["code"] == "invalid_format"
+    assert house.door.opened == []
+
+
+async def test_huge_command_id_is_refused_and_logged(hass, client, house):
+    tv = await link(client, house.tv_a)
+    await ring(hass)
+    await tv.ws.send_json(
+        {"id": 2**64, "type": "perch/let_in", "sealed_pin": "A" * 102 + "=="}
+    )
+    assert (await recv(tv.ws))["error"]["code"] == "invalid_format"
+    assert house.logbook[-1]["message"] == "Lounge TV was refused: the request could not be read"
+    tv.cid = 5
+    assert (await tv.let_in())["result"]["opened"] is True
+
+
+async def test_tv_name_links_are_not_in_the_logbook(hass, client, house):
+    sub = next(s for s in house.entry.subentries.values() if s.data["tv_id"] == "tv_a")
+    hass.config_entries.async_update_subentry(
+        house.entry, sub, title="Den see https://evil.example/x www.evil.example"
+    )
+    await hass.async_block_till_done()
+    tv = await link(client, house.tv_a)
+    assert await tv.refusal() == "no_ring"
+    assert house.logbook[-1]["message"] == "Den see was refused: no recent doorbell ring"
+
+
+async def test_stale_options_form_does_not_clear_a_lockout(hass, client, house):
+    flow = await hass.config_entries.options.async_init(house.entry.entry_id)
+    lock(hass).level, lock(hass).disabled = 3, True  # locked out while the form is open
+    await hass.config_entries.options.async_configure(
+        flow["flow_id"],
+        {"advanced": {}, "doorbell": BELL,
+         "let_in": {"let_in_enabled": True, "let_in_script": SCRIPT}},
+    )
+    assert lock(hass).disabled is True
 
 
 async def test_two_requests_at_once_open_once(hass, client, house):
