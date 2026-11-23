@@ -14,5 +14,8 @@ Include what you found, how to reproduce it, and the versions of Perch for Home 
 and Home Assistant you used. You will get a reply within a few days, and a fix or a plan
 before any details are made public.
 
+Perch cannot open a door by itself. It never uses a lock; let-in runs only the script the
+admin chose, after a ring, with the let-in PIN, on allowed TVs, and locks after wrong PINs.
+
 How Perch keeps pairing and the TV connection local, and the reverse-proxy caveat, are
 described in the [security notes](docs/guide.md#security-notes).

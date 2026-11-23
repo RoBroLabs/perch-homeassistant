@@ -60,13 +60,16 @@ Each TV has a scope: the rooms you give it and the cameras and scenes you chose 
 - Set the lights in its own room while it plays something (see [Moods](#moods)).
 - Be told when your doorbell rings, with the doorbell camera if you chose one (see [Doorbell](#doorbell)).
 - Open snapshots and live views of the cameras in its scope.
+- Ask Perch to tell your phone when a request is ready to watch, if you switched that on (see [Tell my phone](#tell-my-phone)).
+- Ask Perch to run your let-in script after a ring, if you set it up and allowed that TV (see [Let someone in](#let-someone-in)).
 
 **It cannot:**
 
 - Use Home Assistant as an administrator. Its credential works for Perch only and is refused by Home Assistant's own API.
 - Use a light, scene or camera outside its scope. Switches are never included.
 - See other devices, who is home, or any history.
-- Open a door or touch a lock, except through a scene you chose.
+- Open a door or touch a lock. Perch never uses a lock. The most it can do is ask to run the one let-in script you chose, and Home Assistant runs it only within 2 minutes of a ring, with the right let-in PIN, on a TV you allowed.
+- Choose which phone gets a message, or what it says.
 - Keep camera pictures. Perch does not store them.
 - Send your house data anywhere. There is no Perch server, no cloud and no telemetry.
 
@@ -114,6 +117,37 @@ Choose a doorbell trigger in Options. It can be:
 
 When it rings, every paired TV that is connected and has asked for doorbell alerts is told straight away. The alert carries the time and, if you chose one, the doorbell camera. If that camera is not one of your chosen cameras, no camera is sent. The doorbell is not limited to a room. A TV that is not connected at that moment misses the ring.
 
+## Tell my phone
+
+Perch can tell your phone when something you asked for is ready to watch. Off until you set it up.
+
+1. Open **Configure** on the Perch entry and open **Tell my phone**.
+2. Pick one or more phones (notify services, such as the Home Assistant app on your phone).
+3. Switch on **Tell my phone when a request is ready**.
+
+The message says "Your request is ready to watch". Switch on **Include the title's name** to say "<name> is ready to watch" instead; it is off by default because the name shows on a locked phone. Each title is told once, even if several TVs ask. A TV can ask at most 10 times an hour, and all TVs together 30 times an hour. The TV never chooses the phone or the words.
+
+The same phones also get the let-in lockout notices.
+
+## Let someone in
+
+When the doorbell rings, an allowed TV can let someone in by running a script you choose. Off until you set it up. Perch never uses a lock itself: your script does whatever you write in it, for example unlock the door, wait 30 seconds and lock it again.
+
+1. Write a script in Home Assistant that lets someone in.
+2. Make sure a doorbell trigger is chosen in Options.
+3. Open **Configure** on the Perch entry and open **Let someone in**. Pick the script, type a let-in PIN twice (6 to 12 digits; use one of its own, not a PIN you use anywhere else, and 8 or more digits if you can), and switch on **Let someone in from Perch**.
+4. For each TV that may do it, open the TV, choose **Reconfigure** and switch on **This TV may let people in**. No TV may by default.
+
+On the TV, after a ring, someone types the let-in PIN. Home Assistant checks, in this order: let-in is on, this TV is allowed, no lockout, a ring in the last 2 minutes that has not been used, and the PIN. Only then does it run your script. One ring lets someone in once. A restart forgets the ring.
+
+**Wrong PINs.** Three wrong PINs in a row lock let-in for 15 minutes. Three more lock it for 1 hour. Three more switch it off until you switch it on again in Options. Each step tells your phones (see [Tell my phone](#tell-my-phone)) and shows a notification in Home Assistant. A lockout survives a restart. Switching let-in on again in Options clears every lockout.
+
+**Logbook.** Every request, let in or refused, is a logbook entry naming the TV. The PIN is never written anywhere: Home Assistant keeps only a salted, slow hash of it.
+
+The PIN the TV sends is sealed so that only this Home Assistant, on that connection, can read it, even over plain http.
+
+Planned, not built yet: "Also ask on my phone", where a let-in would also need a yes on your phone.
+
 ## Camera events
 
 A list of recent camera events is not part of this release. If the TV asks for one, Perch says events are unavailable. Nothing else breaks.
@@ -135,6 +169,12 @@ Open **Configure** on the Perch entry. These apply to every TV.
 | Paused scene | Run when playback is paused. Must differ from the Movie night scene. | None |
 | Pairing attempts (under Advanced) | Wrong codes allowed before a pairing stops. From 3 to 10. | 5 |
 | Allow Perch through Home Assistant Cloud (under Advanced) | Lets a TV reach Perch through Home Assistant Cloud when away from home. Pairing still needs your home network. | Off |
+| Phones to tell (under Tell my phone) | The notify services Perch may use. | None |
+| Tell my phone when a request is ready (under Tell my phone) | See [Tell my phone](#tell-my-phone). | Off |
+| Include the title's name (under Tell my phone) | Puts the title in the message. Shows on a locked phone. | Off |
+| Let someone in from Perch (under Let someone in) | See [Let someone in](#let-someone-in). Switching it on again clears a lockout. | Off |
+| Script to run (under Let someone in) | The only thing let-in can do. | None |
+| New let-in PIN (under Let someone in) | 6 to 12 digits, typed twice. Leave empty to keep the current one. | None |
 
 Rooms and lights are set per TV, not here (see [Per-TV setup](#per-tv-setup)).
 
@@ -191,8 +231,11 @@ Or, without a restart, go to **Settings > Devices & services > Perch for Home As
 - **One credential per TV.** Home Assistant keeps only a hash of it. The TV proves it holds the credential without sending it, and the credential is sealed to the TV's key when it is handed over. It works for Perch only, not on Home Assistant's own API.
 - **Revoking a TV.** Delete the TV's device in Home Assistant. Its connection closes at once and it cannot reconnect.
 - **Rate limiting.** Pairing starts, pairing status checks and TV connections are each limited per address and overall, per minute: pairing starts 10 per address and 30 overall, status checks 120 and 360, connections 10 and 60. Over a limit, the address (or everyone, for the overall limit) is paused for 60 seconds, doubling on each repeat up to 15 minutes. Global IPv6 addresses count per /64, so rotating addresses inside one network does not dodge the limit; IPv4, private, link-local and loopback addresses count one by one. Perch tracks at most 1,024 addresses at a time, forgetting the oldest first.
+- **Perch cannot open a door by itself.** It never uses a lock. Let-in runs only the script you chose, only within 2 minutes of a ring Home Assistant saw itself, only with the let-in PIN, only on TVs you allowed, and locks after wrong PINs. A stolen TV credential gets no further than that: without the PIN it gets at most 9 guesses, each needing a fresh ring, before let-in switches off.
+- **The let-in PIN is a boundary.** The Perch app also asks for its own Admin PIN, but Home Assistant does not trust anything the TV says about who is using it. Anyone who can read your Home Assistant backups can try to guess the PIN from its stored hash offline, so use a long PIN and keep backups private.
+- **Lockout times use the clock.** Moving Home Assistant's clock forward shortens a timed lockout. The final switch-off does not depend on the clock.
 - **Use https if you can.** Over plain http, camera pictures and links cross your home network unencrypted.
-- **What is stored.** Home Assistant keeps, in the Perch entry, each TV's name, public key, room and scope, a hash of its credential, and your options. In its own storage it keeps the lights' saved state and any skip-tonight times. Pairing attempts, short-lived camera links and the TV's pairing proof live in memory only and are gone on restart. The TV keeps its credential in its own keychain.
+- **What is stored.** Home Assistant keeps, in the Perch entry, each TV's name, public key, room and scope, a hash of its credential, and your options. A salted scrypt hash of the let-in PIN is kept with your options. In its own storage it keeps the lights' saved state, any skip-tonight times, the let-in lockout state and hashes of the titles already told to your phone. Pairing attempts, short-lived camera links and the TV's pairing proof live in memory only and are gone on restart. The TV keeps its credential in its own keychain.
 - **Reporting a security issue.** Please use GitHub private vulnerability reporting: open the repository's **Security** tab and choose **Report a vulnerability**, or go to `https://github.com/RoBroLabs/perch-homeassistant/security/advisories/new`. Do not post details in a public issue.
 
 For developer notes, see [development.md](development.md).

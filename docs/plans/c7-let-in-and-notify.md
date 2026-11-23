@@ -31,8 +31,9 @@ WP-66 (tell my phone when a request is ready, app issue #122). Spec: the Perch a
 The companion has no long-lived key today. Each connection has a fresh `server_key`
 (sent in `auth_required`). A new static key would make a sealed PIN replayable on any
 later connection by anyone holding a stolen TV credential, so the PIN is sealed to the
-connection's `server_key` instead, with the stored credential hash mixed in (as the auth
-proof does, so a host pretending to be the companion cannot open it) and the command id
+connection's `server_key` instead, with X25519(TV static key, `server_key`) and the stored
+credential hash mixed in (so a host pretending to be the companion cannot open it, and a
+leaked hash alone cannot seal) and the command id
 in the AAD (so a frame cannot be replayed on the same connection). Fixed 16-byte padded
 plaintext so the length of the PIN does not show.
 
